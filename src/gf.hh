@@ -115,13 +115,20 @@ public:
     __m256i wide_mul(__m256i a, __m256i b)
     {
         /* al/bl might not be needed, just use a/b */
+        __m256i lomask = _mm256_set_epi64x(
+            0xFFFF,
+            0xFFFF,
+            0xFFFF,
+            0xFFFF
+        );
+
         const __m256i al = _mm256_and_si256(
             a,
-            _mm256_maskz_set1_epi16(0x1111, 0xFFFF)
+            lomask
         );
         const __m256i bl = _mm256_and_si256(
             b,
-            _mm256_maskz_set1_epi16(0x1111, 0xFFFF)
+            lomask
         );
         const __m256i ah = _mm256_srli_epi64(
             a,
@@ -194,9 +201,19 @@ public:
 
         __m256i prod = _mm256_set_m128i(prodhi, prodlo);
 
+        lomask = _mm256_set_epi32(
+            0xFFFF,
+            0xFFFF,
+            0xFFFF,
+            0xFFFF,
+            0xFFFF,
+            0xFFFF,
+            0xFFFF,
+            0xFFFF
+        );
         __m256i lo = _mm256_and_si256(
             prod,
-            _mm256_maskz_set1_epi16(0x5555, 0xFFFF)
+            lomask
         );
         __m256i hi = _mm256_srli_epi32(
             prod,

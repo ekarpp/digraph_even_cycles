@@ -14,19 +14,35 @@ typedef long long int long4_t __attribute__ ((vector_size (32)));
 
 #define VECTOR_N 8
 
+/*
+  _mm256_permutevar8x32_epi32(coeffs[col], idx),                        \
+  _mm256_permutevar8x32_epi32(coeffs[col + 1], idx),                    \
+ */
+
+#define COEFF_LOOP(index)                                               \
+    {                                                                   \
+    for (int col = 0; col < this->cols - 1; col++)                      \
+        coeffs[col] = _mm256_blend_epi32(                               \
+            coeffs[col],                                                \
+            coeffs[col + 1],                                            \
+            0xFF >> index                                               \
+        );                                                              \
+    }
+
 #define DET_LOOP(index)                                         \
     {                                                           \
         int r0 = VECTOR_N*col + index;                          \
         long4_t mx = this->get(r0, col);                        \
         int mxi = r0;                                           \
-        char cmpmsk = 1 << (VECTOR_N - 1 - index);              \
+        int cmpmsk = 0b11 << (4*(VECTOR_N - 1 - index));        \
         for (int row = r0 + 1; row < this->rows; row++)         \
         {                                                       \
-            char cmp = _mm256_cmp_epu32_mask(                   \
-                mx,                                             \
-                this->get(row, col),                            \
-                0x1                                             \
-            );                                                  \
+            int cmp = _mm256_movemask_epi8(                     \
+                _mm256_cmpgt_epi32(                             \
+                    this->get(row, col),                        \
+                    mx                                          \
+                    )                                           \
+                );                                              \
             if (cmp & cmpmsk)                                   \
             {                                                   \
                 mx = this->get(row,col);                        \
@@ -248,103 +264,32 @@ public:
         /* handle special permutations required in case not divisible by 4 */
         if (this->nmod)
         {
-            long4_t idx = { 0, 0, 0, 0 };
-            /* lazy and ugly .. */
             switch (this->nmod)
             {
             case 1:
-                idx = _mm256_set_epi32(
-                    0x0, // 0b0000,
-                    0xF, // 0b1111,
-                    0xE, // 0b1110,
-                    0xD, // 0b1101,
-                    0xC, // 0b1100,
-                    0xB, // 0b1011,
-                    0xA, // 0b1010,
-                    0x9  // 0b1001
-                );
+                COEFF_LOOP(1);
                 break;
             case 2:
-                idx = _mm256_set_epi32(
-                    0x1, // 0b0001,
-                    0x0, // 0b0000,
-                    0xF, // 0b1111,
-                    0xE, // 0b1110,
-                    0xD, // 0b1101,
-                    0xC, // 0b1100,
-                    0xB, // 0b1011,
-                    0xA  // 0b1010
-                );
+                COEFF_LOOP(2);
                 break;
             case 3:
-                idx = _mm256_set_epi32(
-                    0x2, // 0b0010,
-                    0x1, // 0b0001,
-                    0x0, // 0b0000,
-                    0xF, // 0b1111,
-                    0xE, // 0b1110,
-                    0xD, // 0b1101,
-                    0xC, // 0b1100,
-                    0xB  // 0b1011
-                );
+                COEFF_LOOP(3);
                 break;
             case 4:
-                idx = _mm256_set_epi32(
-                    0x3, // 0b0011,
-                    0x2, // 0b0010,
-                    0x1, // 0b0001,
-                    0x0, // 0b0000,
-                    0xF, // 0b1111,
-                    0xE, // 0b1110,
-                    0xD, // 0b1101,
-                    0xC  // 0b1100
-                );
+                COEFF_LOOP(4);
                 break;
             case 5:
-                idx = _mm256_set_epi32(
-                    0x4, // 0b0100,
-                    0x3, // 0b0011,
-                    0x2, // 0b0010,
-                    0x1, // 0b0001,
-                    0x0, // 0b0000,
-                    0xF, // 0b1111,
-                    0xE, // 0b1110,
-                    0xD  // 0b1101
-                );
+                COEFF_LOOP(5);
                 break;
             case 6:
-                idx = _mm256_set_epi32(
-                    0x5, // 0b0101,
-                    0x4, // 0b0100,
-                    0x3, // 0b0011,
-                    0x2, // 0b0010,
-                    0x1, // 0b0001,
-                    0x0, // 0b0000,
-                    0xF, // 0b1111,
-                    0xE  // 0b1110
-                );
+                COEFF_LOOP(6);
                 break;
             case 7:
-                idx = _mm256_set_epi32(
-                    0x6, // 0b0110,
-                    0x5, // 0b0101,
-                    0x4, // 0b0100,
-                    0x3, // 0b0011,
-                    0x2, // 0b0010,
-                    0x1, // 0b0001,
-                    0x0, // 0b0000,
-                    0xF  // 0b1111
-                );
+                COEFF_LOOP(7);
                 break;
             }
 
-            for (int col = 0; col < this->cols - 1; col++)
-                coeffs[col] = _mm256_permutex2var_epi32(
-                    coeffs[col],
-                    idx,
-                    coeffs[col + 1]
-                );
-
+            __m256i idx;
             /* lazy and ugly.. */
             switch (this->nmod)
             {
