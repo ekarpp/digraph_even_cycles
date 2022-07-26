@@ -14,19 +14,14 @@ typedef long long int long4_t __attribute__ ((vector_size (32)));
 
 #define VECTOR_N 8
 
-/*
-  _mm256_permutevar8x32_epi32(coeffs[col], idx),                        \
-  _mm256_permutevar8x32_epi32(coeffs[col + 1], idx),                    \
- */
-
 #define COEFF_LOOP(index)                                               \
     {                                                                   \
-    for (int col = 0; col < this->cols - 1; col++)                      \
-        coeffs[col] = _mm256_blend_epi32(                               \
-            coeffs[col],                                                \
-            coeffs[col + 1],                                            \
-            0xFF >> index                                               \
-        );                                                              \
+        for (int col = 0; col < this->cols - 1; col++)                  \
+            coeffs[col] = _mm256_blend_epi32(                           \
+                _mm256_permutevar8x32_epi32(coeffs[col + 0], idx),      \
+                _mm256_permutevar8x32_epi32(coeffs[col + 1], idx),      \
+                0xFF >> index                                           \
+            );                                                          \
     }
 
 #define DET_LOOP(index)                                         \
@@ -235,7 +230,7 @@ public:
             elems[3]
         );
         std::vector<long4_t> coeffs(this->cols);
-        const long4_t idx = _mm256_set_epi32(
+        long4_t idx = _mm256_set_epi32(
             0b000,
             0b001,
             0b010,
@@ -267,117 +262,98 @@ public:
             switch (this->nmod)
             {
             case 1:
+                idx = _mm256_set_epi32(
+                    0b000,
+                    0b111,
+                    0b110,
+                    0b101,
+                    0b100,
+                    0b011,
+                    0b010,
+                    0b001
+                );
                 COEFF_LOOP(1);
                 break;
             case 2:
+                idx = _mm256_set_epi32(
+                    0b001,
+                    0b000,
+                    0b111,
+                    0b110,
+                    0b101,
+                    0b100,
+                    0b011,
+                    0b010
+                );
                 COEFF_LOOP(2);
                 break;
             case 3:
+                idx = _mm256_set_epi32(
+                    0b010,
+                    0b001,
+                    0b000,
+                    0b111,
+                    0b110,
+                    0b101,
+                    0b100,
+                    0b011
+                );
                 COEFF_LOOP(3);
                 break;
             case 4:
+                idx = _mm256_set_epi32(
+                    0b011,
+                    0b010,
+                    0b001,
+                    0b000,
+                    0b111,
+                    0b110,
+                    0b101,
+                    0b100
+                );
                 COEFF_LOOP(4);
-                break;
-            case 5:
-                COEFF_LOOP(5);
-                break;
-            case 6:
-                COEFF_LOOP(6);
-                break;
-            case 7:
-                COEFF_LOOP(7);
-                break;
-            }
-
-            __m256i idx;
-            /* lazy and ugly.. */
-            switch (this->nmod)
-            {
-            case 1:
-                idx = _mm256_set_epi32(
-                    0b0,
-                    0b0,
-                    0b0,
-                    0b0,
-                    0b0,
-                    0b0,
-                    0b0,
-                    0b0
-                );
-                break;
-            case 2:
-                idx = _mm256_set_epi32(
-                    0b1,
-                    0b0,
-                    0b0,
-                    0b0,
-                    0b0,
-                    0b0,
-                    0b0,
-                    0b0
-                );
-                break;
-            case 3:
-                idx = _mm256_set_epi32(
-                    0b10,
-                    0b1,
-                    0b0,
-                    0b0,
-                    0b0,
-                    0b0,
-                    0b0,
-                    0b0
-                );
-                break;
-            case 4:
-                idx = _mm256_set_epi32(
-                    0b11,
-                    0b10,
-                    0b1,
-                    0b0,
-                    0b0,
-                    0b0,
-                    0b0,
-                    0b0
-                );
                 break;
             case 5:
                 idx = _mm256_set_epi32(
                     0b100,
-                    0b11,
-                    0b10,
-                    0b1,
-                    0b0,
-                    0b0,
-                    0b0,
-                    0b0
+                    0b011,
+                    0b010,
+                    0b001,
+                    0b000,
+                    0b111,
+                    0b110,
+                    0b101
                 );
+                COEFF_LOOP(5);
                 break;
             case 6:
                 idx = _mm256_set_epi32(
                     0b101,
                     0b100,
-                    0b11,
-                    0b10,
-                    0b1,
-                    0b0,
-                    0b0,
-                    0b0
+                    0b011,
+                    0b010,
+                    0b001,
+                    0b000,
+                    0b111,
+                    0b110
                 );
+                COEFF_LOOP(6);
                 break;
             case 7:
                 idx = _mm256_set_epi32(
                     0b110,
                     0b101,
                     0b100,
-                    0b11,
-                    0b10,
-                    0b1,
-                    0b0,
-                    0b0
+                    0b011,
+                    0b010,
+                    0b001,
+                    0b000,
+                    0b111
                 );
+                COEFF_LOOP(7);
                 break;
             }
+
             coeffs[this->cols - 1] = _mm256_permutevar8x32_epi32(
                 coeffs[this->cols - 1],
                 idx
