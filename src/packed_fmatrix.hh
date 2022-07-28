@@ -65,16 +65,7 @@ typedef long long int long4_t __attribute__ ((vector_size (32)));
         this->mul_row(r0, mx_ext);                              \
         /* vectorize end? */                                    \
         char mask = VECTOR_N - 1 - index;                       \
-        long4_t idx = _mm256_set_epi32(                         \
-            mask,                                               \
-            mask,                                               \
-            mask,                                               \
-            mask,                                               \
-            mask,                                               \
-            mask,                                               \
-            mask,                                               \
-            mask                                                \
-        );                                                      \
+        long4_t idx = _mm256_set1_epi32(mask);                  \
         for (int row = r0 + 1; row < this->rows; row++)         \
         {                                                       \
             long4_t val = _mm256_permutevar8x32_epi32(          \
@@ -210,12 +201,7 @@ public:
          * then we permute the gamma vectors as required (note this->nmod here),
          * and do r2 left to right */
         /* do gamma multiplication during initialization?? */
-        long4_t pac_gamma = _mm256_set_epi64x(
-            gamma.get_repr() << 32 | gamma.get_repr(),
-            gamma.get_repr() << 32 | gamma.get_repr(),
-            gamma.get_repr() << 32 | gamma.get_repr(),
-            gamma.get_repr() << 32 | gamma.get_repr()
-        );
+        long4_t pac_gamma = _mm256_set1_epi32(gamma.get_repr());
         // pac_gamma = [gamma^VECTOR_N]
         pac_gamma = global::F.wide_mul(pac_gamma, pac_gamma);
         pac_gamma = global::F.wide_mul(pac_gamma, pac_gamma);
@@ -393,12 +379,7 @@ public:
 
     void mul_row(int row, uint64_t v)
     {
-        long4_t pack = _mm256_set_epi64x(
-            v << 32 | v,
-            v << 32 | v,
-            v << 32 | v,
-            v << 32 | v
-        );
+        long4_t pack = _mm256_set1_epi32(v);
         for (int col = 0; col < this->cols; col++)
             this->set(row, col,
                       global::F.wide_mul(this->get(row, col), pack)
