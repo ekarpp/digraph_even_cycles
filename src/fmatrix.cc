@@ -61,21 +61,24 @@ GF_element FMatrix::det()
     for (int col = 0; col < this->n; col++)
     {
         /* pivot */
-        GF_element mx = this->operator()(col,col);
-        int mxi = col;
-        for (int row = col + 1; row < this->n; row++)
+        GF_element mx = global::F.zero();
+        int mxi = -1;
+        for (int row = col; row < this->n; row++)
         {
-            if (this->operator()(row,col) > mx)
+            if (this->operator()(row,col) != global::F.zero())
             {
                 mx = this->operator()(row,col);
                 mxi = row;
+                break;
             }
         }
-        if (mxi != col)
-            this->swap_rows(mxi, col);
 
         if (mx == global::F.zero())
             return global::F.zero();
+
+        if (mxi != col)
+            this->swap_rows(mxi, col);
+
         det *= mx;
         mx.inv_in_place();
         this->mul_row(col, mx);

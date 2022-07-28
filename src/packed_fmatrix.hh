@@ -27,27 +27,34 @@ typedef long long int long4_t __attribute__ ((vector_size (32)));
 #define DET_LOOP(index)                                         \
     {                                                           \
         int r0 = VECTOR_N*col + index;                          \
-        long4_t mx = this->get(r0, col);                        \
-        int mxi = r0;                                           \
-        int cmpmsk = 0b11 << (4*(VECTOR_N - 1 - index));        \
-        for (int row = r0 + 1; row < this->rows; row++)         \
+        long4_t mx;                                             \
+        int mxi = -1;                                           \
+        long4_t cmpmsk = _mm256_set_epi64x(                     \
+            0xFFFFull << 32,                                    \
+            0,                                                  \
+            0,                                                  \
+            0                                                   \
+        );                                                      \
+        if (index >= 4)                                         \
+            cmpmsk = _mm256_permute4x64_epi64(cmpmsk, 0x0C);    \
+        cmpmsk = _mm256_srli_si256(cmpmsk, 4*(index%4));        \
+        for (int row = r0; row < this->rows; row++)             \
         {                                                       \
-            int cmp = _mm256_movemask_epi8(                     \
-                _mm256_cmpgt_epi32(                             \
-                    this->get(row, col),                        \
-                    mx                                          \
-                    )                                           \
-                );                                              \
-            if (cmp & cmpmsk)                                   \
+            char ZF = _mm256_testz_si256(                       \
+                cmpmsk,                                         \
+                this->get(row,col)                              \
+            );                                                  \
+            if (ZF == 0)                                        \
             {                                                   \
                 mx = this->get(row,col);                        \
                 mxi = row;                                      \
+                break;                                          \
             }                                                   \
         }                                                       \
+        if (mxi == -1)                                          \
+            return global::F.zero();                            \
         uint64_t mx_ext =                                       \
             _mm256_extract_epi32(mx, VECTOR_N - 1 - index);     \
-        if (mx_ext == 0)                                        \
-            return global::F.zero();                            \
         if (mxi != r0)                                          \
             this->swap_rows(mxi, r0);                           \
         /* vectorize? */                                        \
