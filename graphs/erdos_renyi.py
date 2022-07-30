@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import random
 import itertools
+random.seed(123)
 
 # random graph of V vertices and E edges
 # edges are chosen uniformly at random
