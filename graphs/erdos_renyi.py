@@ -16,7 +16,7 @@ def erdos_renyi(V, E, i):
         adj[u].append(str(v))
         adj[v].append(str(u))
     grph = "\n".join([" ".join(l) for l in adj]) + "\n"
-    with open(f"erdos_renyi/er_{V}_{E}_{i}", "w") as f:
+    with open(f"erdos_renyi/er{V}_{E}_{i}", "w") as f:
         f.write(grph)
 
 import sys
