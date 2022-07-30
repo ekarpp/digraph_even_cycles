@@ -17,8 +17,7 @@ using namespace std;
 int main(void)
 {
     double start_t, end_t, delta;
-    uint64_t *vec= static_cast<uint64_t*>(
-        operator new[](sizeof(uint64_t) * N, (std::align_val_t)(64)));
+    uint64_t *vec = (uint64_t*) aligned_alloc(64, sizeof(uint64_t)*N);
 
     uint64_t val = time(nullptr);
 
@@ -166,6 +165,6 @@ int main(void)
          << " GiB in " << delta << " seconds, "
          << GIBS / delta << " GiB / s." << endl;
 
-    delete[] vec;
+    free(vec);
     return 0;
 }
