@@ -18,13 +18,13 @@ def adja_ok(adj):
             return False
     return True
 
-def cfg_model(n, d, m, path):
+def cfg_model(n, d, m, path, cliqs):
     W = []
     for i in range(n):
         for j in range(d):
             W.append(i)
     G = create_adja(W.copy(), n)
-    while not adja_ok(G):
+    while not (adja_ok(G) or cliqs):
         G = create_adja(W.copy(), n)
     graph = "\n".join(
         [" ".join([str(x) for x in l]) for l in G]
@@ -38,7 +38,8 @@ n = int(sys.argv[1])
 d = int(sys.argv[2])
 m = int(sys.argv[3])
 p = sys.argv[4]
+cliqs = len(sys.argv) >= 6
 
 if n*d % 2 == 0:
     for i in range(m):
-        cfg_model(n, d, i, p)
+        cfg_model(n, d, i, p, cliqs)

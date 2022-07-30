@@ -2,13 +2,13 @@
 
 REPEATS=6
 VERTICES=40
-EDGES=$(( $VERTICES * ($VERTICES - 1) ))
+DEG=39
 FOLDER=edge_scalability
 
 mkdir -p $FOLDER
 
-while [ $EDGES -gt 1 ]
+while [ $DEG -gt 0 ]
 do
-    ./erdos_renyi.py $VERTICES $EDGES $REPEATS $FOLDER
-    EDGES=$(echo "$EDGES" | awk '{ print( int($1 / sqrt(2)) ) }')
+    ./config_model.py $VERTICES $DEG $REPEATS $FOLDER yes
+    DEG=$(echo "$DEG" | awk '{ print( int($1 / sqrt(2)) ) }')
 done
