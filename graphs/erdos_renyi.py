@@ -5,7 +5,7 @@ import itertools
 # random graph of V vertices and E edges
 # edges are chosen uniformly at random
 # from all possibilities
-def erdos_renyi(V, E, i):
+def erdos_renyi(V, E, i, path):
     vertices = [x for x in range(V)]
     pairs = list(itertools.combinations(vertices, 2))
     random.shuffle(pairs)
@@ -15,7 +15,7 @@ def erdos_renyi(V, E, i):
         adj[u].append(str(v))
         adj[v].append(str(u))
     grph = "\n".join([" ".join(l) for l in adj]) + "\n"
-    with open(f"erdos_renyi/er{V}_{E}_{i}", "w") as f:
+    with open(f"{path}/er{V}_{E}_{i}", "w") as f:
         f.write(grph)
 
 import sys
@@ -23,6 +23,7 @@ import sys
 V = int(sys.argv[1])
 E = int(sys.argv[2])
 n = int(sys.argv[3])
+p = sys.argv[4]
 
 for i in range(n):
-    erdos_renyi(V, E, i)
+    erdos_renyi(V, E, i, p)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import random
 
-def create_adja(lst, n):
+def create_adja(lst, n, path):
     adj = [[] for _ in range(n)]
     while lst:
         idx = random.randrange(0, len(lst))
@@ -29,7 +29,7 @@ def cfg_model(n, d, m):
     graph = "\n".join(
         [" ".join([str(x) for x in l]) for l in G]
     ) + "\n"
-    with open(f"config/cm{n}_{d}_{m}", "w") as f:
+    with open(f"{path}/cm{n}_{d}_{m}", "w") as f:
         f.write(graph)
 
 import sys
@@ -37,7 +37,8 @@ import sys
 n = int(sys.argv[1])
 d = int(sys.argv[2])
 m = int(sys.argv[3])
+p = sys.argv[4]
 
 if n*d % 2 == 0:
     for i in range(m):
-        cfg_model(n, d, i)
+        cfg_model(n, d, i, p)
