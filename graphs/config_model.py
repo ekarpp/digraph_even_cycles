@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import random
-random.seed(123)
 
 def create_adja(lst, n):
     adj = [[] for _ in range(n)]
