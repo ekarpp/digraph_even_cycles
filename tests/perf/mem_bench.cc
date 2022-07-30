@@ -17,8 +17,9 @@ using namespace std;
 int main(void)
 {
     double start_t, end_t, delta;
+    uint64_t *vec= static_cast<uint64_t*>(
+        operator new[](sizeof(uint64_t) * N, (std::align_val_t)(64)));
 
-    vector<uint64_t> vec(N);
     uint64_t val = time(nullptr);
 
     start_t = omp_get_wtime();
@@ -109,9 +110,9 @@ int main(void)
             csum += vec[j];
         sums[i] = csum;
     }
+    end_t = omp_get_wtime();
     for (int i = 0; i < cores; i++)
         sum += sums[i];
-    end_t = omp_get_wtime();
     cout << sum << endl;
 
     delta = end_t - start_t;
@@ -130,9 +131,9 @@ int main(void)
             csum += vec[idx[j]];
         sums[i] = csum;
     }
+    end_t = omp_get_wtime();
     for (int i = 0; i < cores; i++)
         sum += sums[i];
-    end_t = omp_get_wtime();
     cout << sum << endl;
 
     delta = end_t - start_t;
@@ -155,9 +156,9 @@ int main(void)
         }
         sums[i] = csum;
     }
+    end_t = omp_get_wtime();
     for (int i = 0; i < cores; i++)
         sum += sums[i];
-    end_t = omp_get_wtime();
     cout << sum << endl;
 
     delta = end_t - start_t;
@@ -165,5 +166,6 @@ int main(void)
          << " GiB in " << delta << " seconds, "
          << GIBS / delta << " GiB / s." << endl;
 
+    delete[] vec;
     return 0;
 }
