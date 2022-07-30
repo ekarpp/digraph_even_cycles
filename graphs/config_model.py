@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import random
 
-def create_adja(lst, n, path):
+def create_adja(lst, n):
     adj = [[] for _ in range(n)]
     while lst:
         idx = random.randrange(0, len(lst))
@@ -18,7 +18,7 @@ def adja_ok(adj):
             return False
     return True
 
-def cfg_model(n, d, m):
+def cfg_model(n, d, m, path):
     W = []
     for i in range(n):
         for j in range(d):
