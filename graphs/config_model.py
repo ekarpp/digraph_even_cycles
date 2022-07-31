@@ -14,7 +14,7 @@ def create_adja(lst, n):
 
 def adja_ok(adj):
     for i in range(len(adj)):
-        if i in adj[i] or len(adj[i]) != len(set(adj[i])):
+        if i in adj[i]:
             return False
     return True
 
