@@ -2,7 +2,7 @@
 
 REPEATS=6
 DEG=5
-FOLDER=vector_performance
+FOLDER=ff_comparison
 
 mkdir -p $FOLDER
 
