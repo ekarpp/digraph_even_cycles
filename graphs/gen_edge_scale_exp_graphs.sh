@@ -12,6 +12,6 @@ DEG=$(echo "$DEG" | awk '{ print( int($1 / sqrt(2)) ) }')
 while [ $DEG -gt 0 ]
 do
     echo $DEG
-    ./config_model.py $VERTICES $DEG $REPEATS $FOLDER
+    ./config_model.py $VERTICES $DEG $REPEATS $FOLDER dups
     DEG=$(echo "$DEG" | awk '{ print( int($1 / sqrt(2)) ) }')
 done
