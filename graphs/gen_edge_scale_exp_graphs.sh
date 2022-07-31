@@ -7,8 +7,11 @@ FOLDER=edge_scalability
 
 mkdir -p $FOLDER
 
+DEG=$(echo "$DEG" | awk '{ print( int($1 / sqrt(2)) ) }')
+
 while [ $DEG -gt 0 ]
 do
-    ./config_model.py $VERTICES $DEG $REPEATS $FOLDER yes
+    echo $DEG
+    ./config_model.py $VERTICES $DEG $REPEATS $FOLDER
     DEG=$(echo "$DEG" | awk '{ print( int($1 / sqrt(2)) ) }')
 done
