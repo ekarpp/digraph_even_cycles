@@ -16,7 +16,12 @@ g++ --version
 make test16
 make digraph16
 
-for G in graphs/vector_performance/*
+# WHAT DO HERE? need changes to makefile prob..
+for b in 0 16 32
 do
-        echo $G
+    for G in graphs/vector_performance/*
+    do
+        echo ${G##*/}
+        ./digraph${b} -qtf $G -s $SEED
+    done
 done

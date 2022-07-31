@@ -17,7 +17,11 @@ make objects
 make digraph
 make test
 
-for G in graphs/ff_comparison/*
+for b in 0 16 32
 do
-        echo $G
+    for G in graphs/vector_performance/*
+    do
+        echo ${G##*/}
+        ./digraph${b} -qtf $G -s $SEED
+    done
 done
