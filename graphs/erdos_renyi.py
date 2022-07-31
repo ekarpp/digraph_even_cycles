@@ -8,12 +8,14 @@ import itertools
 def erdos_renyi(V, E, i, path):
     vertices = [x for x in range(V)]
     pairs = list(itertools.combinations(vertices, 2))
+    n = len(pairs)
+    for i in range(n):
+        pairs.append((pairs[i][1], pairs[i][0]))
     random.shuffle(pairs)
     edges = pairs[:E]
     adj = [[] for _ in range(V)]
     for u,v in edges:
         adj[u].append(str(v))
-        adj[v].append(str(u))
     grph = "\n".join([" ".join(l) for l in adj]) + "\n"
     with open(f"{path}/er{V}_{E}_{i}", "w") as f:
         f.write(grph)
