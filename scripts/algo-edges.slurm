@@ -20,7 +20,7 @@ make digraph16
 SEED=123
 VERTICES=40
 
-for DEG in 1 2 3 4 6 8 11 14 18 23 30 40
+for DEG in 1 2 3 4 6 8 11 14 18 23 30 39
 do
     echo "degree: $DEG"
     for i in {0..5}
