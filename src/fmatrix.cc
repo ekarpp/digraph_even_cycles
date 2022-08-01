@@ -98,7 +98,7 @@ Polynomial FMatrix::pdet(int r1, int r2) const
 
     for (int i = 0; i < 2*this->n - 1; i++)
     {
-#if GF2_bits == 16
+#if GF2_bits == 16 && !defined NOVEC
         Packed_FMatrix PA(*this);
         PA.mul_gamma(r1, r2, gamma[i]);
         delta[i] = PA.det();

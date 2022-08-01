@@ -48,6 +48,10 @@ digraph32:
 
 digraph16:
 	$(MAKE) digraphX bits=16
+	$(MAKE) digraph16-NOVEC bits=16
+
+digraph16-NOVEC: main16.o $(OBJ) fmatrix16NOVEC.o
+	$(CXX) main16.o $(subst fmatrix16.o, fmatrix16NOVEC.o, $(OBJ)) -o $@ $(LDFLAGS)
 
 digraph0:
 	$(MAKE) digraphX bits=0
@@ -200,6 +204,9 @@ geng-test: digraph-tests nauty/geng nauty/directg nauty/listg
 
 %16PAR.o: %.cc
 	$(CXX) $(CXXFLAGS) -D GF2_bits=16 -D PARALLEL=1 -c -o $@ $^
+
+%16NOVEC.o: %.cc
+	$(CXX) $(CXXFLAGS) -D GF2_bits=16 -D NOVEC=1 -c -o $@ $^
 
 %0PAR.o: %.cc
 	$(CXX) $(CXXFLAGS) -D GF2_bits=0 -D PARALLEL=1 -c -o $@ $^
