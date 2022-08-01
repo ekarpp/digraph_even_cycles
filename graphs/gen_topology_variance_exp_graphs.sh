@@ -1,7 +1,7 @@
 #!/bin/bash
 
 NUM_GRAPHS=6
-DEGREE=6
+DEGREE=5
 FOLDER=topology_variance
 
 mkdir -p $FOLDER
