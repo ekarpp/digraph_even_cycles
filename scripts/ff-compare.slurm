@@ -5,7 +5,7 @@
 #SBATCH --partition=batch-skl
 #SBATCH --cpus-per-task=1
 #SBATCH --ntasks=1
-#SBATCH --output=vector-perf.out
+#SBATCH --output=ff_comparison.out
 module load gcc/11.2.0
 
 hostname
@@ -17,11 +17,19 @@ make objects
 make digraph
 make test
 
-for b in 0 16 32
+SEED=123
+
+for bits in 0 16 32
 do
-    for G in graphs/vector_performance/*
+    echo "bits: ${bits}"
+    for vertices in 16 24 32 40 48
     do
-        echo ${G##*/}
-        ./digraph${b} -qtf $G -s $SEED
+        echo "vertices: ${vertices}"
+        for i in {0..5}
+        do
+            graph=graphs/ff_comparison/cm${vertices}_*_${i}
+            ./digraph${b} -qtf $graph -s $SEED
+        done
+
     done
 done
