@@ -7,20 +7,21 @@ FOLDER=edge_scalability
 
 mkdir -p $FOLDER
 
-DEG=$(echo "$DEG" | awk '{ print( int($1 / sqrt(2)) ) }')
 
-./k_gen.py 40 .
+./k_gen.py ${VERTICES} .
 
 for i in {0..5}
 do
-    cp k40 $FOLDER/cm40_39_$i
+    cp k${VERTICES} $FOLDER/cm${VERTICES}_${DEG}_$i
 done
 
-rm k40
+rm k${VERTICES}
+
+DEG=$(echo "$DEG" | awk '{ print( int($1 / sqrt(sqrt(2))) ) }')
 
 while [ $DEG -gt 0 ]
 do
     echo $DEG
-    ./config_model.py $VERTICES $DEG $REPEATS $FOLDER dups
-    DEG=$(echo "$DEG" | awk '{ print( int($1 / sqrt(2)) ) }')
+    ./config_model.py $VERTICES $DEG $REPEATS $FOLDER yes
+    DEG=$(echo "$DEG" | awk '{ print( int($1 / sqrt(sqrt(2))) ) }')
 done
