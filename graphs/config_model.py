@@ -17,22 +17,13 @@ def adja_ok(adj):
             return False
     return True
 
-def adja_ok_dups(adj):
-    for i in range(len(adj)):
-        if i in adj[i]:
-            return False
-    return True
-
 def cfg_model(n, d, m, path, dups):
     W = []
     for i in range(n):
         for j in range(d):
             W.append(i)
     G = create_adja(W.copy(), W.copy(), n)
-    test_adj = adja_ok
-    if dups:
-        test_adj = adja_ok_dups
-    while not test_adj(G):
+    while not (dups or test_adj(G)):
         G = create_adja(W.copy(), W.copy(), n)
     graph = "\n".join(
         [" ".join([str(x) for x in l]) for l in G]
