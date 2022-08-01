@@ -20,8 +20,35 @@ make test16
 
 SEED=123
 
-for G in graphs/topology_variance/*
-do
-    echo ${G##*/}
-    ./digraph16-PAR -qtf $G -s $SEED
-done
+do_topology() {
+    for vertices in 16 24 32 40 48 56
+    do
+        echo "vertices: ${vertices}"
+        for i in {0..5}
+        do
+            ./digraph16-PAR -qtf graphs/topology_variance/${1}${vertices}_*_${i}
+        done
+    done
+}
+
+do_cycle_or_complete() {
+    for vertices in 16 24 32 40 48 56
+    do
+        echo "vertices: ${vertices}"
+        for i in {0..5}
+        do
+            ./digraph16-PAR -qtf graphs/topology_variance/${1}${vertices}
+        done
+}
+
+echo "ERDOS"
+do_topology "er"
+
+echo "CONFIG MODEL"
+do_topology "cm"
+
+echo "CYCLE"
+do_cycle_or_complete c
+
+echo "COMPLETE"
+do_cycle_or_complete k
