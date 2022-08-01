@@ -26,7 +26,8 @@ do_topology() {
         echo "vertices: ${vertices}"
         for i in {0..5}
         do
-            ./digraph16 -qtf graphs/topology_variance/${1}${vertices}_*_${i}
+            graph=graphs/topology_variance/${1}${vertices}_*_${i}
+            ./digraph16 -qtf $graph
         done
     done
 }
@@ -37,7 +38,8 @@ do_cycle_or_complete() {
         echo "vertices: ${vertices}"
         for i in {0..5}
         do
-            ./digraph16 -qtf graphs/topology_variance/${1}${vertices}
+            graph=graphs/topology_variance/${1}${vertices}
+            ./digraph16 -qtf $graph
         done
 }
 
