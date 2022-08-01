@@ -16,12 +16,20 @@ g++ --version
 make test16
 make digraph16
 
-# WHAT DO HERE? need changes to makefile prob..
-for b in 0 16 32
+for vertices in 16 24 32 40 48
 do
-    for G in graphs/vector_performance/*
+    echo "VECTORIZED vertices: ${vertices}"
+    for i in {0..5}
     do
-        echo ${G##*/}
-        ./digraph${b} -qtf $G -s $SEED
+        graph=graphs/ff_comparison/cm${vertices}_*_${i}
+        ./digraph16 -qtf $graph -s $SEED
     done
+
+    echo "nonvecs vertices: ${vertices}"
+    for i in {0..5}
+    do
+        graph=graphs/ff_comparison/cm${vertices}_*_${i}
+        ./digraph16-NOVEC -qtf $graph -s $SEED
+    done
+
 done
