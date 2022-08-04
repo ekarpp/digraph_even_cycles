@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#SBATCH --time=00:02:30
+#SBATCH --time=00:05:00
 #SBATCH --mem=10G
-#SBATCH --partition=batch-skl
-#SBATCH --cpus-per-task=40
+#SBATCH --partition=short-hsw
+#SBATCH --cpus-per-task=24
 #SBATCH --ntasks=1
 #SBATCH --output=mem-bench.out
 module load gcc/11.2.0

@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#SBATCH --time=00:35:00
+#SBATCH --time=00:45:00
 #SBATCH --mem=52G
-#SBATCH --partition=batch-skl
-#SBATCH --cpus-per-task=1
+#SBATCH --partition=short-hsw
+#SBATCH --cpus-per-task=24
 #SBATCH --ntasks=1
 #SBATCH --output=ext-perf-seq.out
 module load gcc/11.2.0
@@ -14,7 +14,7 @@ cat /etc/*release
 g++ --version
 
 make clean
-make objects
+make objects -j24
 make digraph-tests
 make extension-perf
 

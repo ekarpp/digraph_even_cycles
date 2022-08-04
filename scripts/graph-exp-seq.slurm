@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --time=6:00:00
+#SBATCH --time=4:00:00
 #SBATCH --mem=1G
-#SBATCH --partition=batch-hsw
+#SBATCH --partition=short-hsw
 #SBATCH --cpus-per-task=24
 #SBATCH --ntasks=1
 #SBATCH --output=results/graph_exp.out

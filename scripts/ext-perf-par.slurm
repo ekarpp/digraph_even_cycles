@@ -2,8 +2,8 @@
 
 #SBATCH --time=00:10:00
 #SBATCH --mem=52G
-#SBATCH --partition=batch-skl
-#SBATCH --cpus-per-task=40
+#SBATCH --partition=short-hsw
+#SBATCH --cpus-per-task=24
 #SBATCH --ntasks=1
 #SBATCH --output=ext-perf-par.out
 module load gcc/11.2.0
