@@ -176,14 +176,21 @@ int main(int argc, char **argv)
     cout << t << " ref multiplications in time: " <<
         delta << " s or " << mhz << " Mhz" << endl;
 
-    BENCH_MUL(global::E.kronecker_mul, 1);
+    BENCH_MUL(global::E.fast_mul, 1);
+
+    cout << t << " fast multiplications in time: " <<
+        delta << " s or " << mhz << " Mhz" << endl;
+
+    BENCH_MUL(global::E.kronecker_mul, 0);
 
     cout << t << " kronecker multiplications in time: " <<
         delta << " s or " << mhz << " Mhz" << endl;
 
-    BENCH_MUL(global::E.fast_mul, 0);
+    cout << endl << endl;
 
-    cout << t << " fast multiplications in time: " <<
+    BENCH_REM(global::E.euclid_rem);
+
+    cout << t << " euclid remainders in time: " <<
         delta << " s or " << mhz << " Mhz" << endl;
 
     BENCH_REM(global::E.mont_rem);
@@ -191,15 +198,12 @@ int main(int argc, char **argv)
     cout << t << " mont remainders in time: " <<
         delta << " s or " << mhz << " Mhz" << endl;
 
-    BENCH_REM(global::E.euclid_rem);
-
-    cout << t << " euclid remainders in time: " <<
-        delta << " s or " << mhz << " Mhz" << endl;
-
     BENCH_REM(global::E.intel_rem);
 
     cout << t << " intel remainders in time " <<
         delta << " s or " << mhz << " Mhz" << endl;
+
+    cout << endl << endl;
 
 #if GF2_bits == 16
     uint64_t pack_mask = 0xFFFF | (0xFFFFull << 32);
