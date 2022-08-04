@@ -13,10 +13,9 @@ cat /etc/*release
 g++ --version
 
 make clean
-make digraph-tests16
-make digraph16
-
-make test16
+make objects -j24
+make digraph
+make test
 
 SEED=123
 
@@ -72,7 +71,7 @@ do_cycle_or_complete() {
 }
 
 # TOPOLOGY
-BIN="digraph16"
+BIN="./digraph16"
 FOLDER="topology_variance"
 RES_PTH="results/topo/seq"
 mkdir -p ${RES_PTH}
@@ -82,7 +81,7 @@ do_cycle_or_copmlete $FOLDER "c" $BIN > ${RES_PTH}/c &
 do_cycle_or_copmlete $FOLDER "k" $BIN > ${RES_PTH}/k &
 
 # EDGE SCALABILITY
-BIN="digraph16"
+BIN="./digraph16"
 FOLDER="edge_scalability"
 RES_PTH="results/edge"
 mkdir -p ${RES_PTH}
@@ -95,15 +94,15 @@ RES_PTH="results/ff_compare"
 mkdir -p ${RES_PTH}
 for b in 0 16 32
 do
-    do_topology $FOLDER "cm" digraph${b} > ${RES_PTH}/digraph${b} &
+    do_topology $FOLDER "cm" "./digraph${b}" > ${RES_PTH}/digraph${b} &
 done
 
 # VECTOR PERF
 FOLDER="vector_performance"
 RES_PTH="results/vecotr_perf"
 mkdir -p ${RES_PTH}
-do_topology $FOLDER "cm" digraph16 > ${RES_PTH}/vec &
-do_topology $FOLDER "cm" digraph16-NOVEC > ${RES_PTH}/no_vec &
+do_topology $FOLDER "cm" "./digraph16" > ${RES_PTH}/vec &
+do_topology $FOLDER "cm" "./digraph16-NOVEC" > ${RES_PTH}/no_vec &
 
 wait
 zip -r $(date '+%Y-%m-%d')_results.zip results
