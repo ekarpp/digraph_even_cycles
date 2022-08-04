@@ -26,8 +26,7 @@ edge_scale_config() {
         echo "config degree: $DEG"
         for i in {0..5}
         do
-            graph=graphs/${1}/cm${vertices}_${DEG}_${i}
-            "./${2}" -qtf ${graph} -s $SEED
+            "./${2}" -qtf graphs/${1}/cm${vertices}_${DEG}_${i} -s $SEED
         done
     done
 }
@@ -40,8 +39,7 @@ edge_scale_er() {
         EDGES=$(( $DEG * $VERTICES ))
         for i in {0..5}
         do
-            graph=graphs/${1}/er${vertices}_${EDGES}_${i}
-            "./${2}" -qtf ${graph} -s $SEED
+            "./${2}" -qtf graphs/${1}/er${vertices}_${EDGES}_${i} -s $SEED
         done
     done
 }
@@ -52,8 +50,7 @@ do_topology() {
         echo "${2} VERTICES: ${VERTICES}"
         for i in {0..5}
         do
-            graph=graphs/${1}/${2}${vertices}_*_${i}
-            "./${3}" -qtf $graph -s $SEED
+            "./${3}" -qtf graphs/${1}/${2}${vertices}_*_${i} -s $SEED
         done
     done
 }
@@ -64,8 +61,7 @@ do_cycle_or_complete() {
         echo "${2} VERTICES: ${VERTICES}"
         for i in {0..5}
         do
-            graph=graphs/${1}/${2}${vertices}
-            "./${3}" -qtf $graph -s $SEED
+            "./${3}" -qtf graphs/${1}/${2}${vertices} -s $SEED
         done
     done
 }
@@ -77,8 +73,8 @@ RES_PTH="results/topo/seq"
 mkdir -p ${RES_PTH}
 do_topology $FOLDER "er" $BIN > ${RES_PTH}/er &
 do_topology $FOLDER "cm" $BIN > ${RES_PTH}/cm &
-do_cycle_or_copmlete $FOLDER "c" $BIN > ${RES_PTH}/c &
-do_cycle_or_copmlete $FOLDER "k" $BIN > ${RES_PTH}/k &
+do_cycle_or_complete $FOLDER "c" $BIN > ${RES_PTH}/c &
+do_cycle_or_complete $FOLDER "k" $BIN > ${RES_PTH}/k &
 
 # EDGE SCALABILITY
 BIN="digraph16"
