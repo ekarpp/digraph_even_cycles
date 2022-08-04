@@ -13,10 +13,9 @@ cat /etc/*release
 g++ --version
 
 make clean
-make digraph-tests16
-make digraph16
-
-make test16
+make objects -j24
+make digraph
+make test
 
 SEED=123
 
@@ -28,7 +27,7 @@ edge_scale_config() {
         for i in {0..5}
         do
             graph=graphs/${1}/cm${vertices}_${DEG}_${i}
-            ${2} -qtf ${graph} -s $SEED
+            "./${2}" -qtf ${graph} -s $SEED
         done
     done
 }
@@ -42,7 +41,7 @@ edge_scale_er() {
         for i in {0..5}
         do
             graph=graphs/${1}/er${vertices}_${EDGES}_${i}
-            ${2} -qtf ${graph} -s $SEED
+            "./${2}" -qtf ${graph} -s $SEED
         done
     done
 }
@@ -54,7 +53,7 @@ do_topology() {
         for i in {0..5}
         do
             graph=graphs/${1}/${2}${vertices}_*_${i}
-            ${3} -qtf $graph -s $SEED
+            "./${3}" -qtf $graph -s $SEED
         done
     done
 }
@@ -66,7 +65,7 @@ do_cycle_or_complete() {
         for i in {0..5}
         do
             graph=graphs/${1}/${2}${vertices}
-            ${3} -qtf $graph -s $SEED
+            "./${3}" -qtf $graph -s $SEED
         done
     done
 }
