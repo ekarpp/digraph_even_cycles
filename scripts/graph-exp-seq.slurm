@@ -1,11 +1,13 @@
 #!/bin/bash
 
+# time not accurate
 #SBATCH --time=4:00:00
 #SBATCH --mem=1G
 #SBATCH --partition=short-hsw
 #SBATCH --cpus-per-task=24
 #SBATCH --ntasks=1
-#SBATCH --output=results/graph_exp.out
+#SBATCH --output=results/graph-exp.out
+module load gcc/11.2.0
 
 hostname
 uname -a
@@ -71,18 +73,18 @@ BIN="digraph16"
 FOLDER="topology_variance"
 RES_PTH="results/topo"
 mkdir -p ${RES_PTH}
-do_topology $FOLDER "er" $BIN > ${RES_PTH}/er &
-do_topology $FOLDER "cm" $BIN > ${RES_PTH}/cm &
-do_cycle_or_complete $FOLDER "c" $BIN > ${RES_PTH}/c &
-do_cycle_or_complete $FOLDER "k" $BIN > ${RES_PTH}/k &
+do_topology $FOLDER "er" $BIN > ${RES_PTH}/er
+do_topology $FOLDER "cm" $BIN > ${RES_PTH}/cm
+do_cycle_or_complete $FOLDER "c" $BIN > ${RES_PTH}/c
+do_cycle_or_complete $FOLDER "k" $BIN > ${RES_PTH}/k
 
 # EDGE SCALABILITY
 BIN="digraph16"
 FOLDER="edge_scalability"
 RES_PTH="results/edge"
 mkdir -p ${RES_PTH}
-edge_scale_config $FOLDER $BIN > ${RES_PTH}/cm &
-edge_scale_er $FOLDER $BIN > ${RES_PTH}/er &
+edge_scale_config $FOLDER $BIN > ${RES_PTH}/cm
+edge_scale_er $FOLDER $BIN > ${RES_PTH}/er
 
 # FF COMPARE
 FOLDER="ff_comparison"
@@ -90,15 +92,14 @@ RES_PTH="results/ff_compare"
 mkdir -p ${RES_PTH}
 for b in 0 16 32
 do
-    do_topology $FOLDER "cm" digraph${b} > ${RES_PTH}/digraph${b} &
+    do_topology $FOLDER "cm" digraph${b} > ${RES_PTH}/digraph${b}
 done
 
 # VECTOR PERF
 FOLDER="vector_performance"
 RES_PTH="results/vecotr_perf"
 mkdir -p ${RES_PTH}
-do_topology $FOLDER "cm" digraph16 > ${RES_PTH}/vec &
-do_topology $FOLDER "cm" digraph16-NOVEC > ${RES_PTH}/no_vec &
+do_topology $FOLDER "cm" digraph16 > ${RES_PTH}/vec
+do_topology $FOLDER "cm" digraph16-NOVEC > ${RES_PTH}/no_vec
 
-wait
 zip -r $(date '+%Y-%m-%d')_results.zip results
