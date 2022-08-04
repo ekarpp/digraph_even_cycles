@@ -26,7 +26,7 @@ edge_scale_config() {
         echo "config degree: $DEG"
         for i in {0..5}
         do
-            "./${2}" -qtf graphs/${1}/cm${vertices}_${DEG}_${i} -s $SEED
+            "./${2}" -qtf graphs/${1}/cm${VERTICES}_${DEG}_${i} -s $SEED
         done
     done
 }
@@ -39,7 +39,7 @@ edge_scale_er() {
         EDGES=$(( $DEG * $VERTICES ))
         for i in {0..5}
         do
-            "./${2}" -qtf graphs/${1}/er${vertices}_${EDGES}_${i} -s $SEED
+            "./${2}" -qtf graphs/${1}/er${VERTICES}_${EDGES}_${i} -s $SEED
         done
     done
 }
@@ -50,7 +50,7 @@ do_topology() {
         echo "${2} VERTICES: ${VERTICES}"
         for i in {0..5}
         do
-            "./${3}" -qtf graphs/${1}/${2}${vertices}_*_${i} -s $SEED
+            "./${3}" -qtf graphs/${1}/${2}${VERTICES}_*_${i} -s $SEED
         done
     done
 }
@@ -61,7 +61,7 @@ do_cycle_or_complete() {
         echo "${2} VERTICES: ${VERTICES}"
         for i in {0..5}
         do
-            "./${3}" -qtf graphs/${1}/${2}${vertices} -s $SEED
+            "./${3}" -qtf graphs/${1}/${2}${VERTICES} -s $SEED
         done
     done
 }
