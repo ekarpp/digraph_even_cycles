@@ -5,7 +5,7 @@
 #SBATCH --partition=batch-skl
 #SBATCH --cpus-per-task=40
 #SBATCH --ntasks=1
-#SBATCH --output=algo-topology-par.out
+#SBATCH --output=results/topo/algo-topology-par.out
 
 hostname
 uname -a

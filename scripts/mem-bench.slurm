@@ -5,7 +5,7 @@
 #SBATCH --partition=short-hsw
 #SBATCH --cpus-per-task=24
 #SBATCH --ntasks=1
-#SBATCH --output=mem-bench.out
+#SBATCH --output=results/mem-bench.out
 module load gcc/11.2.0
 
 hostname

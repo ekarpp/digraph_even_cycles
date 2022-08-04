@@ -69,7 +69,7 @@ do_cycle_or_complete() {
 # TOPOLOGY
 BIN="digraph16"
 FOLDER="topology_variance"
-RES_PTH="results/topo/seq"
+RES_PTH="results/topo"
 mkdir -p ${RES_PTH}
 do_topology $FOLDER "er" $BIN > ${RES_PTH}/er &
 do_topology $FOLDER "cm" $BIN > ${RES_PTH}/cm &

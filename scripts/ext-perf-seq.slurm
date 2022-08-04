@@ -5,7 +5,7 @@
 #SBATCH --partition=short-hsw
 #SBATCH --cpus-per-task=24
 #SBATCH --ntasks=1
-#SBATCH --output=ext-perf-seq.out
+#SBATCH --output=results/ext-perf/ext-perf-seq.out
 module load gcc/11.2.0
 
 hostname
