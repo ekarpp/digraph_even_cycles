@@ -109,7 +109,7 @@ int main(int argc, char **argv)
     global::randgen.init(seed);
 
 #if GF2_bits == 0
-    int n = 10;
+    int n = 24;
     uint64_t mod = util::irred_poly(n);
     global::F.init(n, mod);
     global::E.init(n, mod);
