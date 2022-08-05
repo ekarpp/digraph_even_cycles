@@ -50,8 +50,9 @@ digraph16:
 	$(MAKE) digraphX bits=16
 	$(MAKE) digraph16-NOVEC bits=16
 
-digraph16-NOVEC: main16.o $(OBJ) fmatrix16NOVEC.o
+digraph16-NOVEC: main16.o $(OBJ) fmatrix16NOVEC.o solver16PAR.o
 	$(CXX) main16.o $(subst fmatrix16.o, fmatrix16NOVEC.o, $(OBJ)) -o $@ $(LDFLAGS)
+	$(CXX) main16.o $(subst solver16.o, solver16PAR.o, $(subst fmatrix16.o, fmatrix16NOVEC.o, $(OBJ))) -o $@-PAR $(LDFLAGS)
 
 digraph0:
 	$(MAKE) digraphX bits=0
