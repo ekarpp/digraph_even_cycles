@@ -71,7 +71,7 @@ do_cycle_or_complete() {
 # TOPOLOGY
 BIN="digraph16"
 FOLDER="topology_variance"
-RES_PTH="results/topo"
+RES_PTH="results/topo/seq"
 mkdir -p ${RES_PTH}
 do_topology $FOLDER "er" $BIN > ${RES_PTH}/er
 do_topology $FOLDER "cm" $BIN > ${RES_PTH}/cm
@@ -81,14 +81,14 @@ do_cycle_or_complete $FOLDER "k" $BIN > ${RES_PTH}/k
 # EDGE SCALABILITY
 BIN="digraph16"
 FOLDER="edge_scalability"
-RES_PTH="results/edge"
+RES_PTH="results/edge/seq"
 mkdir -p ${RES_PTH}
 edge_scale_config $FOLDER $BIN > ${RES_PTH}/cm
 edge_scale_er $FOLDER $BIN > ${RES_PTH}/er
 
 # FF COMPARE
 FOLDER="ff_comparison"
-RES_PTH="results/ff_compare"
+RES_PTH="results/ff_compare/seq"
 mkdir -p ${RES_PTH}
 for b in 0 16 32
 do
@@ -97,7 +97,7 @@ done
 
 # VECTOR PERF
 FOLDER="vector_performance"
-RES_PTH="results/vecotr_perf"
+RES_PTH="results/vecotr_perf/seq"
 mkdir -p ${RES_PTH}
 do_topology $FOLDER "cm" digraph16 > ${RES_PTH}/vec
 do_topology $FOLDER "cm" digraph16-NOVEC > ${RES_PTH}/no_vec
