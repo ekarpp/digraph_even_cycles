@@ -81,7 +81,7 @@ do_cycle_or_complete $FOLDER "c" $BIN > ${RES_PTH}/c
 do_cycle_or_complete $FOLDER "k" $BIN > ${RES_PTH}/k
 
 # PAR
-BIN="digraph16"
+BIN="digraph16-PAR"
 RES_PTH="results/topo/par"
 mkdir -p ${RES_PTH}
 do_topology $FOLDER "er" $BIN > ${RES_PTH}/er
