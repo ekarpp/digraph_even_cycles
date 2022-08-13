@@ -127,13 +127,23 @@ public:
 
     extension_repr mul_const(extension_repr c) const
     {
-        __m128i cand = _mm_and_si128(this->repr, c.repr);
+        __m128i cand =
+            _mm_and_si128(
+                this->repr,
+                _mm_shuffle_epi32(
+                    c.repr,
+                    0x44
+                )
+            );
         __m128i cxor =
             _mm_and_si128(
                 _mm_set_epi64x(LONGLONG_ONES, 0x0),
-                _mm_xor_si128(
+                _mm_and_si128(
                     c.repr,
-                    _mm_shuffle_epi32(this->repr, 0x44)
+                    _mm_shuffle_epi32(
+                        this->repr,
+                        0x44
+                    )
                 )
             );
         return _mm_xor_si128(cand, cxor);
@@ -645,17 +655,13 @@ public:
 
     extension_repr fast_mul(extension_repr a, extension_repr b) const
     {
-        /* clean this up */
-        __m128i aa = a.repr;
-        __m128i bb = b.repr;
-
-        __m128i alobhi = _mm_clmulepi64_si128(aa, bb, 0x01);
-        __m128i ahiblo = _mm_clmulepi64_si128(aa, bb, 0x10);
-
         __m128i hilo = _mm_and_si128(
             _mm_set_epi64x(LONGLONG_ONES, 0x0),
             _mm_shuffle_epi32(
-                _mm_xor_si128(alobhi, ahiblo),
+                _mm_xor_si128(
+                    _mm_clmulepi64_si128(a.repr, b.repr, 0x01),
+                    _mm_clmulepi64_si128(a.repr, b.repr, 0x10)
+                ),
                 0x44
             )
         );
