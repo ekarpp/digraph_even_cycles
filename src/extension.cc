@@ -29,5 +29,5 @@ Extension_element Extension::random() const
 /* Extension element */
 GF_element Extension_element::project() const
 {
-    return GF_element(this->repr.lo);
+    return GF_element(this->repr.get_lo());
 }

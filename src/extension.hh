@@ -15,6 +15,8 @@
 class GF_element;
 class Extension_element;
 
+#define LONGLONG_ONES 0xffffFFFFffffFFFFull
+
 /* representation for elements of E(4^n)
  * each bit in lo is the low bit of the mod 4 coefficient.
  * similarly for hi
@@ -22,56 +24,150 @@ class Extension_element;
 class extension_repr
 {
 public:
-    uint64_t hi;
-    uint64_t lo;
+    __m128i repr;
+
+    extension_repr() { }
+
+    extension_repr(uint64_t hi, uint64_t lo)
+    {
+        this->repr = _mm_set_epi64x(hi, lo);
+    }
+
+    extension_repr(__m128i repr)
+    {
+        this->repr = repr;
+    }
+
+    void print() const
+    {
+        uint64_t lo = _mm_extract_epi64(this->repr, 0x0);
+        uint64_t hi = _mm_extract_epi64(this->repr, 0x1);
+        std::cout << hi << lo << std::endl;
+    }
 
     extension_repr &operator>>=(int n)
     {
-        this->hi >>= n;
-        this->lo >>= n;
-
+        this->repr = _mm_srli_epi64(this->repr, n);
         return *this;
     }
 
     extension_repr &operator<<=(int n)
     {
-        this->hi <<= n;
-        this->lo <<= n;
+        this->repr = _mm_slli_epi64(this->repr, n);
 
         return *this;
     }
 
     extension_repr &operator&=(uint64_t m)
     {
-        this->hi &= m;
-        this->lo &= m;
+        this->repr = _mm_and_si128(this->repr, _mm_set_epi64x(m, m));
 
         return *this;
     }
 
-    extension_repr operator>>(int n)
+    extension_repr operator>>(int n) const
     {
-        return { this->hi >> n, this->lo >> n };
+        return _mm_srli_epi64(this->repr, n);
     }
 
-    extension_repr operator<<(int n)
+    extension_repr operator<<(int n) const
     {
-        return { this->hi << n, this->lo << n };
+        return _mm_slli_epi64(this->repr, n);
     }
 
-    extension_repr operator&(uint64_t m)
+    extension_repr operator&(uint64_t m) const
     {
-        return { this->hi & m, this->lo & m };
+        return _mm_and_si128(this->repr, _mm_set_epi64x(m, m));
     }
 
-    extension_repr shiftr_and(int n, uint64_t m)
+    extension_repr shiftr_and(int n, uint64_t m) const
     {
-        return {
-            (this->hi >> n) & m,
-            (this->lo >> n) & m
-        };
+        return _mm_and_si128(
+            _mm_srli_epi64(this->repr, n),
+            _mm_set_epi64x(m, m)
+        );
     }
 
+    bool is_even() const
+    {
+        char ZF = _mm_testz_si128(
+            this->repr,
+            _mm_set_epi64x(0x0, LONGLONG_ONES)
+        );
+
+        return ZF == 1;
+    }
+
+    extension_repr div2() const
+    {
+        return _mm_and_si128(this->repr, _mm_set_epi64x(LONGLONG_ONES, 0x0));
+    }
+
+    bool operator==(extension_repr other) const
+    {
+        __m128i cmp = _mm_cmpeq_epi64(this->repr, other.repr);
+        int res = _mm_movemask_epi8(cmp);
+        return res == 0xFFFF;
+    }
+
+    uint64_t get_lo() const
+    {
+        return _mm_extract_epi64(this->repr, 0x0);
+    }
+
+    uint64_t get_hi() const
+    {
+        return _mm_extract_epi64(this->repr, 0x1);
+    }
+
+    uint64_t log2() const
+    {
+        return std::max(util::log2(this->get_lo()), util::log2(this->get_hi()));
+    }
+
+    extension_repr mul_const(extension_repr c) const
+    {
+        __m128i cand = _mm_and_si128(this->repr, c.repr);
+        __m128i cxor =
+            _mm_and_si128(
+                _mm_set_epi64x(LONGLONG_ONES, 0x0),
+                _mm_xor_si128(
+                    c.repr,
+                    _mm_shuffle_epi32(this->repr, 0x44)
+                )
+            );
+        return _mm_xor_si128(cand, cxor);
+    }
+
+    extension_repr negate() const
+    {
+        return _mm_xor_si128(
+            this->repr,
+            _mm_and_si128(
+                this->repr,
+                _mm_set_epi64x(LONGLONG_ONES, 0x0)
+            )
+        );
+    }
+
+    extension_repr add(extension_repr other) const
+    {
+        __m128i carry =
+            _mm_and_si128(
+                _mm_set_epi64x(LONGLONG_ONES, 0x0),
+                _mm_shuffle_epi32(
+                    _mm_and_si128(this->repr, other.repr),
+                    0x44
+                )
+            );
+        return _mm_xor_si128(
+            this->repr,
+            _mm_xor_si128(
+                carry,
+                other.repr
+            )
+        );
+    }
 };
 
 #if GF2_bits == 16
@@ -114,34 +210,32 @@ private:
     extension_repr quo(extension_repr a, extension_repr b) const
     {
         extension_repr q = { 0, 0 };
-        int dega = std::max(util::log2(a.lo), util::log2(a.hi));
-        int degb = std::max(util::log2(b.lo), util::log2(b.hi));
+        int dega = a.log2();
+        int degb = b.log2();
 
         while (dega >= degb)
         {
 
-            extension_repr s = {
-                (a.hi & (1ll << dega)) >> degb,
-                (a.lo & (1ll << dega)) >> degb
-            };
+            extension_repr s = a & (1ll << dega);
+            s >>= degb;
 
             q = this->add(q, s);
             a = this->subtract(a, this->fast_mul(s, b));
 
-            dega = std::max(util::log2(a.lo), util::log2(a.hi));
+            dega = a.log2();
         }
 
         return q;
     }
 
 
-#define DEGA                                                              \
-{                                                                         \
-    if (a[1].hi || a[1].lo)                                               \
-        dega = 64 + std::max(util::log2(a[1].hi), util::log2(a[1].lo));   \
-    else                                                                  \
-        dega = std::max(util::log2(a[0].hi), util::log2(a[0].lo));        \
-}
+#define DEGA                                                            \
+    {                                                                   \
+        if (a[1].get_hi() || a[1].get_lo())                             \
+            dega = 64 + a[1].log2();                                    \
+        else                                                            \
+            dega = a[0].log2();                                         \
+    }
 
 
     /* returns quotient form division of r_prime * x^(2n) by mod.
@@ -160,34 +254,29 @@ private:
         while (dega >= degb)
         {
             int lohi = (dega >= 64) ? 1 : 0;
-            uint64_t lo = a[lohi].lo & (1ll << (dega - lohi*64));
-            uint64_t hi = a[lohi].hi & (1ll << (dega - lohi*64));
+            uint64_t lo = a[lohi].get_lo() & (1ll << (dega - lohi*64));
+            uint64_t hi = a[lohi].get_hi() & (1ll << (dega - lohi*64));
+            extension_repr s = a[lohi] & (1ll << (dega - lohi*64));
 
-            extension_repr s;
             if (lohi)
-            {
-                s = {
-                    hi << (64 - degb),
-                    lo << (64 - degb)
-                };
-            }
+                s <<= 64 - degb;
             else
-            {
-                s = {
-                    hi >> degb,
-                    lo >> degb
-                };
-            }
+                s >>= degb;
+
             q = this->add(q, s);
 
             /* prod of sb, computed with 2 bit multiplier.
              * same method as with the reference multiplication. */
             int degc = dega - degb;
-            extension_repr tmp = { 0, 0 };
+
+            uint64_t tmp_hi = 0;
+            uint64_t tmp_lo = 0;
             if (hi)
-                tmp.hi = 0xFFFFFFFFFll;
+                tmp_hi = 0xFFFFFFFFFll;
             if (lo)
-                tmp.lo = 0xFFFFFFFFFll;
+                tmp_lo = 0xFFFFFFFFFll;
+            extension_repr tmp(tmp_hi, tmp_lo);
+
             extension_repr sg[2];
 
             /* tmp * g = sg[0] */
@@ -249,8 +338,8 @@ public:
             if (((this->mod >> i) & 1) && i < this->n)
                 this->mod_ast.push_back(i);
 
-            char qphi = (q_plus_repr.hi >> i) & 1;
-            char qplo = (q_plus_repr.lo >> i) & 1;
+            char qphi = (q_plus_repr.get_hi() >> i) & 1;
+            char qplo = (q_plus_repr.get_lo() >> i) & 1;
             if (qphi || qplo)
             {
                 this->q_plus.push_back(i);
@@ -318,9 +407,9 @@ public:
 
     extension_repr euclid_rem(extension_repr a) const
     {
-        while (a.lo > this->mask || a.hi > this->mask)
+        while (a.get_lo() > this->mask || a.get_hi() > this->mask)
         {
-            int shift = std::max(util::log2(a.lo), util::log2(a.hi));
+            int shift = a.log2();
             shift -= this->n;
             /* mod has coefficients modulo 2, thus its negation
              * is just it applied to hi and lo (see negate function)*/
@@ -332,8 +421,8 @@ public:
     /* https://dl.acm.org/doi/10.1016/j.ipl.2010.04.011 */
     extension_repr intel_rem(extension_repr a) const
     {
-        extension_repr hi = { a.hi >> this->n, a.lo >> this->n };
-        extension_repr lo = { a.hi & this->mask, a.lo & this->mask };
+        extension_repr hi = a >> this->n;
+        extension_repr lo = a & this->mask;
 
 #if GF2_bits == 16
         extension_repr tmp = hi >> 14;
@@ -411,26 +500,69 @@ public:
 
     extension_repr packed_fast_mul(extension_repr a, extension_repr b) const
     {
-        uint64_t alobhi = global::F.packed_clmul(a.lo, b.hi);
-        uint64_t ahiblo = global::F.packed_clmul(a.hi, b.lo);
+        __m128i ahi = _mm_srli_epi64(a.repr, 32);
+        __m128i alo =
+            _mm_and_si128(
+                a.repr,
+                _mm_set_epi64x(0xFFFF, 0xFFFF)
+            );
+
+        __m128i bhi = _mm_srli_epi64(b.repr, 32);
+        __m128i blo =
+            _mm_and_si128(
+                b.repr,
+                _mm_set_epi64x(0xFFFF, 0xFFFF)
+            );
+
+        __m128i prodlo =
+            _mm_and_si128(
+                _mm_set_epi64x(LONGLONG_ONES, 0x0),
+                _mm_shuffle_epi32(
+                    _mm_xor_si128(
+                        _mm_clmulepi64_si128(alo, blo, 0x01),
+                        _mm_clmulepi64_si128(alo, blo, 0x10)
+                    ),
+                    0x44
+                )
+            );
+
+        __m128i prodhi =
+            _mm_slli_epi64(
+                _mm_and_si128(
+                    _mm_set_epi64x(LONGLONG_ONES, 0x0),
+                    _mm_shuffle_epi32(
+                        _mm_xor_si128(
+                            _mm_clmulepi64_si128(ahi, bhi, 0x01),
+                            _mm_clmulepi64_si128(ahi, bhi, 0x10)
+                        ),
+                        0x44
+                    )
+                ),
+                32
+            );
+
+        __m128i hilo = _mm_or_si128(prodhi, prodlo);
 
         uint64_t hi = 0;
         uint64_t lo = 0;
 
+        uint64_t b_lo = b.get_lo();
+        uint64_t a_lo = a.get_lo();
         /* handle product of lo and lo */
         #pragma GCC unroll 32
         for (int i = 0; i < GF2_bits; i++)
         {
             uint64_t msk = 0;
-            if ((b.lo >> i) & 1)
+            if ((b_lo >> i) & 1)
                 msk |= 0xFFFFFFFFull;
-            if ((b.lo >> (i+32)) & 1)
+            if ((b_lo >> (i+32)) & 1)
                 msk |= 0xFFFFFFFFull << 32;
-            hi ^= (a.lo << i) & lo & msk;
-            lo ^= (a.lo << i) & msk;
+            hi ^= (a_lo << i) & lo & msk;
+            lo ^= (a_lo << i) & msk;
         }
 
-        return { alobhi ^ ahiblo ^ hi, lo };
+        __m128i lolo = _mm_set_epi64x(hi, lo);
+        return _mm_xor_si128(lolo, hilo);
     }
 #endif
 
@@ -459,16 +591,12 @@ public:
 
     extension_repr add(extension_repr a, extension_repr b) const
     {
-        uint64_t carry = a.lo & b.lo;
-        return { carry ^ a.hi ^ b.hi, a.lo ^ b.lo };
+        return a.add(b);
     }
 
     extension_repr negate(extension_repr a) const
     {
-        return {
-            a.lo ^ a.hi,
-            a.lo
-        };
+        return a.negate();
     }
 
     extension_repr subtract(extension_repr a, extension_repr b) const
@@ -483,24 +611,25 @@ public:
 
     extension_repr mul_const(extension_repr a, extension_repr c) const
     {
-        return {
-            (a.hi & c.lo) ^ (a.lo & c.hi),
-            a.lo & c.lo
-        };
+        return a.mul_const(c);
     }
 
     extension_repr ref_mul(extension_repr a, extension_repr b) const
     {
-        extension_repr c = { 0, 0 };
+        extension_repr c(0,0);
+        uint64_t a_hi = a.get_hi();
+        uint64_t a_lo = a.get_lo();
 
         for (int i = 0; i <= global::E.get_n(); i++)
         {
-            extension_repr tmp = { 0, 0 };
-            if ((a.hi >> i) & 1)
-                tmp.hi = this->mask;
-            if ((a.lo >> i) & 1)
-                tmp.lo = this->mask;
+            uint64_t tmp_hi = 0;
+            uint64_t tmp_lo = 0;
+            if ((a_hi >> i) & 1)
+                tmp_hi = this->mask;
+            if ((a_lo >> i) & 1)
+                tmp_lo = this->mask;
 
+            extension_repr tmp(tmp_hi, tmp_lo);
             /* 2 bit carryless multiplier */
             extension_repr aib = this->mul_const(b, tmp);
 
@@ -514,19 +643,26 @@ public:
     extension_repr fast_mul(extension_repr a, extension_repr b) const
     {
         /* clean this up */
-        __m128i aa = _mm_set_epi64x(a.hi, a.lo);
-        __m128i bb = _mm_set_epi64x(b.hi, b.lo);
+        __m128i aa = a.repr;
+        __m128i bb = b.repr;
 
         __m128i alobhi = _mm_clmulepi64_si128(aa, bb, 0x01);
         __m128i ahiblo = _mm_clmulepi64_si128(aa, bb, 0x10);
 
-        uint64_t hi1 = _mm_extract_epi64(ahiblo, 0x0);
-        uint64_t hi2 = _mm_extract_epi64(alobhi, 0x0);
+        __m128i hilo = _mm_and_si128(
+            _mm_set_epi64x(LONGLONG_ONES, 0x0),
+            _mm_shuffle_epi32(
+                _mm_xor_si128(alobhi, ahiblo),
+                0x44
+            )
+        );
 
         uint64_t hi = 0;
         uint64_t lo = 0;
 
         /* handle product of lo and lo */
+        uint64_t b_lo = b.get_lo();
+        uint64_t a_lo = a.get_lo();
         #pragma GCC unroll 32
 #if GF2_bits == 16
         for (int i = 0; i <= GF2_bits; i++)
@@ -534,20 +670,19 @@ public:
         for (int i = 0; i <= 32; i++)
 #endif
         {
-            if ((b.lo >> i)&1)
+            if ((b_lo >> i)&1)
             {
-                hi ^= (a.lo << i) & lo;
-                lo ^= (a.lo << i);
+                hi ^= (a_lo << i) & lo;
+                lo ^= (a_lo << i);
             }
         }
-
-        return { hi1 ^ hi2 ^ hi, lo };
+        __m128i lolo = _mm_set_epi64x(hi, lo);
+        return _mm_xor_si128(lolo, hilo);
     }
 
     /* only works if deg <= 15 for a AND b */
     extension_repr kronecker_mul(extension_repr a, extension_repr b) const
     {
-        extension_repr ret;
         /* we use different representation of polynomials than before here.
          * each bit string can be split to sets of 2 bits where each set
          * corresponds to a coefficient modulo 4. */
@@ -568,8 +703,11 @@ public:
         /* extract the usual hi/lo representation */
         uint64_t hiextmask = 0xAAAAAAAAAAAAAAAAull;
         uint64_t loextmask = 0x5555555555555555ull;
-        ret.lo = _pext_u64(tmp, loextmask);
-        ret.hi = _pext_u64(tmp, hiextmask);
+        extension_repr ret(
+            _pext_u64(tmp, hiextmask),
+            _pext_u64(tmp, loextmask)
+        );
+        return ret;
 #else
         uint512_t ahbh = bit::mul_256bit(aa.big, bb.big);
         uint512_t ahbl = bit::mul_256bit_64bit(aa.big, bb.small);
@@ -615,14 +753,17 @@ public:
 
         uint64_t hiextmask = 0xAAAAAAAAAAAAAAAAull;
         uint64_t loextmask = 0x5555555555555555ull;
-        ret.hi = 0; ret.lo = 0;
+
+        uint64_t ret_hi = 0;
+        uint64_t ret_lo = 0;
         for (int i = 0; i < 3; i++)
         {
-            ret.hi |= _pext_u64(tmp[i], hiextmask) << (28*i);
-            ret.lo |= _pext_u64(tmp[i], loextmask) << (28*i);
+            ret_hi |= _pext_u64(tmp[i], hiextmask) << (28*i);
+            ret_lo |= _pext_u64(tmp[i], loextmask) << (28*i);
         }
-#endif
+        extension_repr ret(ret_hi, ret_lo);
         return ret;
+#endif
     }
 
     kronecker_form kronecker_substitution(extension_repr x) const
@@ -631,8 +772,9 @@ public:
          * where 2 bits represent single coefficient.
          * the "more traditional" bit representation for polynomials */
         uint64_t extmask = 0x5555555555555555ull;
-        uint64_t comb = _pdep_u64(x.lo, extmask);
-        comb |= _pdep_u64(x.hi, extmask << 1);
+        /* TODO */
+        uint64_t comb = _pdep_u64(x.get_lo(), extmask);
+        comb |= _pdep_u64(x.get_hi(), extmask << 1);
 
         kronecker_form kron;
 
@@ -686,7 +828,8 @@ public:
 
     Extension_element(const uint64_t lo, const uint64_t hi)
     {
-        this->repr = { hi, lo };
+        extension_repr e(hi, lo);
+        this->repr = e;
     }
 
     Extension_element(const extension_repr repr)
@@ -696,7 +839,7 @@ public:
 
     Extension_element(const Extension_element& e)
     {
-        this->repr = { e.get_hi(), e.get_lo() };
+        this->repr = e.get_repr();
     }
 
     Extension_element operator+(const Extension_element &other) const
@@ -740,12 +883,12 @@ public:
 
     bool operator==(const Extension_element &other) const
     {
-        return this->repr.lo == other.get_lo() && this->repr.hi == other.get_hi();
+        return this->repr == other.get_repr();
     }
 
     bool is_even() const
     {
-        return this->repr.lo == 0x0;
+        return this->repr.is_even();
     }
 
     /* used only on elements that are multiplied by two
@@ -755,19 +898,16 @@ public:
     /* modify instead of returning new? */
     Extension_element div2() const
     {
-        return Extension_element(this->repr.hi, 0x0);
+        return Extension_element(this->repr.div2());
     }
 
     GF_element project() const;
 
-    uint64_t get_lo() const { return this->repr.lo; }
-    uint64_t get_hi() const { return this->repr.hi; }
     extension_repr get_repr() const { return this->repr; }
 
     Extension_element &operator=(const Extension_element &other)
     {
-        this->repr.lo = other.get_lo();
-        this->repr.hi = other.get_hi();
+        this->repr = other.get_repr();
         return *this;
     }
 
@@ -778,14 +918,7 @@ public:
 
     void print() const
     {
-        for (int i = 8; i >= 0; i--)
-        {
-            uint64_t v = (this->repr.hi >> i) & 1;
-            v <<= 1;
-            v |= (this->repr.lo >> i) & 1;
-            std::cout << v;
-        }
-        std::cout << " ";
+        this->repr.print();
     }
 };
 

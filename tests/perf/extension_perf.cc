@@ -37,8 +37,8 @@
     }                                                       \
     end = omp_get_wtime();                                  \
     if (exp == 0x6fabc73829101) {                           \
-        cout << a[exp].hi << a[exp].lo << endl;             \
-        cout << w.hi << w.lo << endl;                       \
+        a[exp].print();                                     \
+        w.print();                                          \
     }                                                       \
     for (uint64_t i = 0; i < t; i++) {                      \
         if (last)                                           \
@@ -73,8 +73,8 @@
     }                                                       \
     end = omp_get_wtime();                                  \
     if (exp == 0x6fabc73829101) {                           \
-        cout << a[exp].hi << a[exp].lo << endl;             \
-        cout << w.hi << w.lo << endl;                       \
+        a[exp].print();                                     \
+        w.print();                                          \
     }                                                       \
     for (uint64_t i = 0; i < t; i++)                        \
         a[i] = aa[i];                                       \
@@ -151,18 +151,21 @@ int main(int argc, char **argv)
         {
             uint64_t alo = ar >> (2*GF2_bits*j);
             uint64_t ahi = ar >> (GF2_bits*(2*j+1));
-            a[i+j] = {
+            extension_repr ea(
                 ahi & global::E.get_mask(),
                 alo & global::E.get_mask()
-            };
+            );
+            a[i+j] = ea;
+
             aa[i+j] = a[i+j];
 
             uint64_t blo = br >> (2*GF2_bits*j);
             uint64_t bhi = br >> (GF2_bits*(2*j+1));
-            b[i+j] = {
+            extension_repr eb(
                 bhi & global::E.get_mask(),
                 blo & global::E.get_mask()
-            };
+            );
+            b[i+j] = eb;
         }
     }
     end = omp_get_wtime();
@@ -214,15 +217,20 @@ int main(int argc, char **argv)
         uint64_t ar = global::randgen();
         uint64_t br = global::randgen();
 
-        a[i] = {
+        extension_repr ea(
             ar & pack_mask,
             (ar >> 16) & pack_mask
-        };
+        );
+
+        a[i] = ea;
         aa[i] = a[i];
-        b[i] = {
+
+        extension_repr eb(
             br & pack_mask,
             (br >> 16) & pack_mask
-        };
+        );
+
+        b[i] = eb;
     }
     end = omp_get_wtime();
     cout << "initialized in " << end - start << " s" << endl;

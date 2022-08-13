@@ -75,7 +75,7 @@ void Extension_test::test_fast_mul()
         extension_repr ref = global::E.ref_mul(a.get_repr(), b.get_repr());
         extension_repr fast = global::E.fast_mul(a.get_repr(), b.get_repr());
 
-        if (fast.hi != ref.hi || fast.lo != ref.lo)
+        if (fast.get_hi() != ref.get_hi() || fast.get_lo() != ref.get_lo())
             err++;
     }
     end_test(err);
@@ -93,7 +93,7 @@ void Extension_test::test_kronecker_mul()
         extension_repr ref = global::E.ref_mul(a.get_repr(), b.get_repr());
         extension_repr kron = global::E.kronecker_mul(a.get_repr(), b.get_repr());
 
-        if (kron.hi != ref.hi || kron.lo != ref.lo)
+        if (kron.get_hi() != ref.get_hi() || kron.get_lo() != ref.get_lo())
             err++;
     }
     end_test(err);
@@ -112,7 +112,7 @@ void Extension_test::test_intel_rem()
         extension_repr euclid = global::E.euclid_rem(v);
         extension_repr intel = global::E.intel_rem(v);
 
-        if (euclid.hi != intel.hi || euclid.lo != intel.lo)
+        if (euclid.get_hi() != intel.get_hi() || euclid.get_lo() != intel.get_lo())
             err++;
     }
     end_test(err);
@@ -147,7 +147,7 @@ void Extension_test::test_mont_rem()
             global::E.mul(a, b)
         );
 
-        if (ref.hi != mont.hi || ref.lo != mont.lo)
+        if (ref.get_hi() != mont.get_hi() || ref.get_lo() != mont.get_lo())
             err++;
     }
     end_test(err);
@@ -193,8 +193,8 @@ void Extension_test::test_packed_intel_rem()
     {
         Extension_element a;
         Extension_element b;
-        extension_repr v = { 0, 0 };
-        extension_repr euclid = { 0, 0 };
+        uint64_t v_lo = 0; uint64_t v_hi = 0;
+        uint64_t euclid_lo = 0; uint64_t euclid_hi = 0;
 
         for (int j = 0; j < 2; j++)
         {
@@ -202,16 +202,17 @@ void Extension_test::test_packed_intel_rem()
             b = global::E.random();
             extension_repr tmp =
                 global::E.fast_mul(a.get_repr(), b.get_repr());
-            v.hi |= tmp.hi << (32*j);
-            v.lo |= tmp.lo << (32*j);
+            v_hi |= tmp.get_hi() << (32*j);
+            v_lo |= tmp.get_lo() << (32*j);
             tmp = global::E.euclid_rem(tmp);
-            euclid.hi |= tmp.hi << (32*j);
-            euclid.lo |= tmp.lo << (32*j);
+            euclid_hi |= tmp.get_hi() << (32*j);
+            euclid_lo |= tmp.get_lo() << (32*j);
         }
 
+        extension_repr v(v_hi, v_lo);
         extension_repr intel = global::E.packed_intel_rem(v);
 
-        if (euclid.hi != intel.hi || euclid.lo != intel.lo)
+        if (euclid_hi != intel.get_hi() || euclid_lo != intel.get_lo())
             err++;
     }
     end_test(err);
@@ -226,9 +227,9 @@ void Extension_test::test_packed_fast_mul()
     {
         extension_repr a;
         extension_repr b;
-        extension_repr pa = { 0, 0 };
-        extension_repr pb = { 0, 0 };
-        extension_repr ref = { 0, 0 };
+        uint64_t pa_lo = 0; uint64_t pa_hi = 0;
+        uint64_t pb_lo = 0; uint64_t pb_hi = 0;
+        uint64_t ref_lo = 0; uint64_t ref_hi = 0;
 
         for (int j = 0; j < 2; j++)
         {
@@ -244,20 +245,22 @@ void Extension_test::test_packed_fast_mul()
                 (r >> 48) & mask
             };
 
-            pa.hi |= a.hi << (32*j);
-            pa.lo |= a.lo << (32*j);
+            pa_hi |= a.get_hi() << (32*j);
+            pa_lo |= a.get_lo() << (32*j);
 
-            pb.hi |= b.hi << (32*j);
-            pb.lo |= b.lo << (32*j);
+            pb_hi |= b.get_hi() << (32*j);
+            pb_lo |= b.get_lo() << (32*j);
 
             extension_repr tmp = global::E.fast_mul(a, b);
-            ref.hi |= tmp.hi << (32*j);
-            ref.lo |= tmp.lo << (32*j);
+            ref_hi |= tmp.get_hi() << (32*j);
+            ref_lo |= tmp.get_lo() << (32*j);
         }
 
+        extension_repr pa(pa_hi, pa_lo);
+        extension_repr pb(pb_hi, pb_lo);
         extension_repr fast = global::E.packed_fast_mul(pa, pb);
 
-        if (ref.hi != fast.hi || ref.lo != fast.lo)
+        if (ref_hi != fast.get_hi() || ref_lo != fast.get_lo())
             err++;
     }
     end_test(err);
