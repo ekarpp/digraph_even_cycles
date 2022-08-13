@@ -144,8 +144,11 @@ public:
         return _mm_xor_si128(
             this->repr,
             _mm_and_si128(
-                this->repr,
-                _mm_set_epi64x(LONGLONG_ONES, 0x0)
+                _mm_set_epi64x(LONGLONG_ONES, 0x0),
+                _mm_shuffle_epi32(
+                    this->repr,
+                    0x44
+                )
             )
         );
     }
