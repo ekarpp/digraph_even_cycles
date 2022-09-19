@@ -644,7 +644,7 @@ public:
 
         extmask = 0x0303030303030303ull;
         kron.words[0] = _pdep_u64(comb & 0xFFFF, extmask);
-        kron.words[1] = _pdep_u64((comb >> 16) & 0xFFFF, extmask);
+        kron.words[1] = _pdep_u64(comb >> 16, extmask);
 #else
         /* each coefficients takes 9 bits.
          * we have <= 32 coefficients. */
