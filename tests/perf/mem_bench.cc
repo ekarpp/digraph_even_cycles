@@ -2,7 +2,6 @@
 #include <iostream>
 #include <vector>
 #include <omp.h>
-#include <cstdlib>
 #include <stdint.h>
 #include <algorithm>
 
@@ -20,12 +19,12 @@ int main(void)
 {
     double start_t, end_t, delta;
     uint64_t *vec = (uint64_t*) aligned_alloc(64, sizeof(uint64_t)*N);
+    uint64_t *wup = (uint64_t*) aligned_alloc(64, sizeof(uint64_t)*WARMUP);
 
     uint64_t val = time(nullptr);
-    uint64_t wup = rand();
 
     for (uint64_t i = 0; i < WARMUP; i++)
-        vec[i] = wup;
+        wup[i] = val;
 
     start_t = omp_get_wtime();
     for (uint64_t i = 0; i < N; i++)
@@ -39,7 +38,7 @@ int main(void)
 
     uint64_t sum = 0;
     for (uint64_t i = 0; i < WARMUP; i++)
-        sum += vec[i] + wup;
+        sum += wup[i];
 
     sum = 0;
     start_t = omp_get_wtime();
@@ -94,11 +93,10 @@ int main(void)
     cout << "############################" << endl;
 
     val = time(nullptr);
-    wup = rand();
 
     #pragma omp parallel for
     for (uint64_t i = 0; i < WARMUP; i++)
-        vec[i] = wup;
+        wup[i] = val;
 
     start_t = omp_get_wtime();
     #pragma omp parallel for
@@ -182,5 +180,6 @@ int main(void)
          << GIBS / delta << " GiB / s." << endl;
 
     free(vec);
+    free(wup);
     return 0;
 }
