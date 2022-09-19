@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <omp.h>
+#include <cstdlib>
 #include <stdint.h>
 #include <algorithm>
 
@@ -10,6 +11,7 @@ using namespace std;
 #define CORES 24
 // 4 GiBs
 #define N (1ull << 29)
+#define WARMUP (1ull << 25)
 #define GIBS (N*8 / (1ull << 30))
 // one line is 8*64 bits
 #define LINE 8
@@ -20,6 +22,10 @@ int main(void)
     uint64_t *vec = (uint64_t*) aligned_alloc(64, sizeof(uint64_t)*N);
 
     uint64_t val = time(nullptr);
+    uint64_t wup = rand();
+
+    for (uint64_t i = 0; i < WARMUP; i++)
+        vec[i] = wup;
 
     start_t = omp_get_wtime();
     for (uint64_t i = 0; i < N; i++)
@@ -32,6 +38,10 @@ int main(void)
          << GIBS / delta << " GiB / s." << endl;
 
     uint64_t sum = 0;
+    for (uint64_t i = 0; i < WARMUP; i++)
+        sum += vec[i] + wup;
+
+    sum = 0;
     start_t = omp_get_wtime();
     for (uint64_t i = 0; i < N; i++)
         sum += vec[i];
@@ -84,6 +94,12 @@ int main(void)
     cout << "############################" << endl;
 
     val = time(nullptr);
+    wup = rand();
+
+    #pragma omp parallel for
+    for (uint64_t i = 0; i < WARMUP; i++)
+        vec[i] = wup;
+
     start_t = omp_get_wtime();
     #pragma omp parallel for
     for (uint64_t i = 0; i < N; i++)
