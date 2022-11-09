@@ -6,7 +6,7 @@ The algorithm uses a randomized algorithm design technique called *algebraic fin
 To compute the permanent of a matrix in polynomial time, the algorithm utilizes a specifically engineered characteristic 4 extension of a characteristic 2 finite field. The characteristic 4 extension admits a $O(n^{2+m})$ time algorithm for the matrix permanent by an extension of techniques described by Valiant [[3]](https://doi.org/10.1016/0304-3975(79)90044-6).
 
 # Compilation
-Executing `make` will build all binaries, while `make ${binary_name}` builds a specific binary. Requires `g++` and x86-64 microarchitecture with support for `PCLMULQDQ` and `BMI2` instruction set extensions. Additionally, the binaries utilizing $GF(2^{16})$ require support for `AVX` and `AVX2` instruction set extensions.
+Executing `make` will build all binaries, while `make ${binary_name}` builds a specific binary. Command `make help` can be ran for further instructions. Requires `g++` and x86-64 microarchitecture with support for `PCLMULQDQ` and `BMI2` instruction set extensions. Additionally, the binaries utilizing $GF(2^{16})$ require support for `AVX` and `AVX2` instruction set extensions.
 
 The number after the name of the binary corresponds to the exponent of the underlying finite field. Parallel binaries have the `PAR` suffix and non-vectorized $GF(2^{16})$ binaries have the `NOVEC` suffix. The binaries can be ran without arguments for further instructions.
 

@@ -23,7 +23,7 @@ all: $(BIN) nauty/geng nauty/directg nauty/listg
 
 CLEAN_REGEX := {0,16,32}?(-PAR)
 
-.PHONY: clean clean-bin clean-obj
+.PHONY: clean clean-bin clean-obj help
 clean-obj:
 	rm -f *.o
 clean-bin:
@@ -38,6 +38,39 @@ objects:
 	$(MAKE) objectsX bits=32
 	$(MAKE) objectsX bits=16
 	$(MAKE) objectsX bits=0
+
+help:
+	@echo 'in all commands $${b} refers to the exponent of underlying finite field.'
+	@echo 'values available b=0,16,32. list of available commands:'
+	@echo ''
+	@echo '  solvers:'
+	@echo '    make digraph$${b}'
+	@echo ''
+	@echo '  GF(2^16) solver without AVX:'
+	@echo '    make digraph16-NOVEC'
+	@echo ''
+	@echo '  unit testing:'
+	@echo '    make digraph-test$${b}'
+	@echo ''
+	@echo '  runs predefined tests:'
+	@echo '    make test$${b}'
+	@echo ''
+	@echo '  tests $${b} solver on all digraphs of $${V} vertices (up to isomorphism):'
+	@echo '    BITS=$${b} vert=$${V} make geng-test'
+	@echo ''
+	@echo '  GF performance benchamrking:'
+	@echo '    make gf-perf$${b}'
+	@echo ''
+	@echo '  extension performance benchmarking:'
+	@echo '    make extension-perf$${b}'
+	@echo ''
+	@echo '  memory bandwidth benchmarking:'
+	@echo '    make mem-bench'
+	@echo ''
+	@echo '  clean-up artifacts and binaries:'
+	@echo '    make clean'
+	@echo ''
+
 
 ###################
 # SOLVER BINARIES #
