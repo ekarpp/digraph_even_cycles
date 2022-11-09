@@ -1,0 +1,60 @@
+# $1 = graph folder name
+# $2 = graph topology, cm or er
+# $3 = binary name
+# $4 = seed
+do_topology() {
+    for VERTICES in 16 24 32 40 48
+    do
+        echo "${2} VERTICES: ${VERTICES}"
+        for i in {0..5}
+        do
+            "./${3}" -qtf graphs/${1}/${2}${VERTICES}_*_${i} -s ${4}
+        done
+    done
+}
+
+# $1 = graph folder name
+# $2 = graph topology, c or k
+# $3 = binary name
+# $4 = seed
+do_cycle_or_complete() {
+    for VERTICES in 16 24 32 40 48
+    do
+        echo "${2} VERTICES: ${VERTICES}"
+        for i in {0..5}
+        do
+            "./${3}" -qtf graphs/${1}/${2}${VERTICES} -s ${4}
+        done
+    done
+}
+
+# $1 = graph folder name
+# $2 = binary name
+# $3 = seed
+edge_scale_config() {
+    VERTICES=40
+    for DEG in 1 2 3 4 6 8 11 14 18 23 30 39
+    do
+        echo "config degree: $DEG"
+        for i in {0..5}
+        do
+            "./${2}" -qtf graphs/${1}/cm${VERTICES}_${DEG}_${i} -s ${3}
+        done
+    done
+}
+
+# $1 = graph folder name
+# $2 = binary name
+# $3 = seed
+edge_scale_er() {
+    VERTICES=40
+    for DEG in 1 2 3 4 6 8 11 14 18 23 30 39
+    do
+        echo "erdos degree: $DEG"
+        EDGES=$(( $DEG * $VERTICES ))
+        for i in {0..5}
+        do
+            "./${2}" -qtf graphs/${1}/er${VERTICES}_${EDGES}_${i} -s ${3}
+        done
+    done
+}
