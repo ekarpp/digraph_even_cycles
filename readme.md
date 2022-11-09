@@ -12,6 +12,7 @@ The number after the name of the binary corresponds to the exponent of the under
 
 In addition to the implementation of the algorithm, this repository provides:
 - Unit testing software
+- Nauty as a submodule to generate all digraphs with $n$ vertices (up to isomorphism)
 - Various graph generator scripts
 - Graphs and SLURM scripts used to perform experiments
 - Benchmarking software for our implementations finite fields and the characteristic 4 extension
