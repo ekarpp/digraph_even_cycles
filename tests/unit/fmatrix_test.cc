@@ -258,22 +258,7 @@ void FMatrix_test::test_packed_gamma_mul()
         A.mul_gamma(r1, r2, gamma);
         PA.mul_gamma(r1, r2, gamma);
 
-        if (A != PA.unpack())
-            err++;
-    }
-    end_test(err);
-}
-
-void FMatrix_test::test_packed_init()
-{
-    cout << "packed matrix init: ";
-    int err = 0;
-    for (int t = 0; t < this->tests; t++)
-    {
-        FMatrix A = this->random();
-        Packed_FMatrix PA(A);
-
-        if (A != PA.unpack())
+        if (A.det() != PA.det())
             err++;
     }
     end_test(err);
