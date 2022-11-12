@@ -14,14 +14,27 @@ typedef long long long4_t __attribute__ ((vector_size (32)));
 
 #define VECTOR_N 16
 
+#define ROT_RIGHT32(vec)                          \
+    _mm256_permutevar8x32_epi32(                  \
+        vec,                                      \
+        _mm256_set_epi32(                         \
+            0b000,                                \
+            0b111,                                \
+            0b110,                                \
+            0b101,                                \
+            0b100,                                \
+            0b011,                                \
+            0b010,                                \
+            0b001                                 \
+        )                                         \
+    )
+
+
 #define MOVE_ID_VEC(index)                              \
     {                                                   \
         if (index%2)                                    \
             onepos = _mm256_slli_epi32(                 \
-                _mm256_permutevar8x32_epi32(            \
-                    onepos,                             \
-                    permute_idx                         \
-                ),                                      \
+                ROT_RIGHT32(onepos),                    \
                 16                                      \
             );                                          \
         else                                            \
@@ -176,17 +189,6 @@ public:
                 );
             }
         }
-        /* cycle all one position to right */
-        const long4_t permute_idx = _mm256_set_epi32(
-            0b000,
-            0b111,
-            0b110,
-            0b101,
-            0b100,
-            0b011,
-            0b010,
-            0b001
-        );
 
         long4_t onepos = _mm256_set_epi64x(1ull << 48, 0, 0, 0);
         for (int i = 0; i < this->nmod; i++)
@@ -262,105 +264,36 @@ public:
         /* handle special permutations required in case not divisible by 4 */
         if (this->nmod)
         {
-            switch (this->nmod)
+            if (this->nmod % 2)
             {
-            case 1:
-                idx = _mm256_set_epi32(
-                    0b000,
-                    0b111,
-                    0b110,
-                    0b101,
-                    0b100,
-                    0b011,
-                    0b010,
-                    0b001
-                );
-                COEFF_LOOP(1);
-                break;
-            case 2:
-                idx = _mm256_set_epi32(
-                    0b001,
-                    0b000,
-                    0b111,
-                    0b110,
-                    0b101,
-                    0b100,
-                    0b011,
-                    0b010
-                );
-                COEFF_LOOP(2);
-                break;
-            case 3:
-                idx = _mm256_set_epi32(
-                    0b010,
-                    0b001,
-                    0b000,
-                    0b111,
-                    0b110,
-                    0b101,
-                    0b100,
-                    0b011
-                );
-                COEFF_LOOP(3);
-                break;
-            case 4:
-                idx = _mm256_set_epi32(
-                    0b011,
-                    0b010,
-                    0b001,
-                    0b000,
-                    0b111,
-                    0b110,
-                    0b101,
-                    0b100
-                );
-                COEFF_LOOP(4);
-                break;
-            case 5:
-                idx = _mm256_set_epi32(
-                    0b100,
-                    0b011,
-                    0b010,
-                    0b001,
-                    0b000,
-                    0b111,
-                    0b110,
-                    0b101
-                );
-                COEFF_LOOP(5);
-                break;
-            case 6:
-                idx = _mm256_set_epi32(
-                    0b101,
-                    0b100,
-                    0b011,
-                    0b010,
-                    0b001,
-                    0b000,
-                    0b111,
-                    0b110
-                );
-                COEFF_LOOP(6);
-                break;
-            case 7:
-                idx = _mm256_set_epi32(
-                    0b110,
-                    0b101,
-                    0b100,
-                    0b011,
-                    0b010,
-                    0b001,
-                    0b000,
-                    0b111
-                );
-                COEFF_LOOP(7);
-                break;
+                // we are in trouble
             }
+            else
+            {
+                idx = _mm256_set_epi32(
+                    0b111, 0b110, 0b101, 0b100,
+                    0b011, 0b010, 0b001, 0b000
+                );
+                for (int i = 0; i < this->nmod / 2; i++)
+                    idx = ROT_RIGHT32(idx);
 
-            coeffs[this->cols - 1] = _mm256_permutevar8x32_epi32(
-                coeffs[this->cols - 1],
-                idx
-            );
+                switch (this->nmod / 2)
+                {
+                case 1: COEFF_LOOP(1); break;
+                case 2: COEFF_LOOP(2); break;
+                case 3: COEFF_LOOP(3); break;
+                case 4: COEFF_LOOP(4); break;
+                case 5: COEFF_LOOP(5); break;
+                case 6: COEFF_LOOP(6); break;
+                case 7: COEFF_LOOP(7); break;
+                }
+
+                // index = this->nmod
+                coeffs[this->cols - 1] = _mm256_permutevar8x32_epi32(
+                    coeffs[this->cols - 1],
+                    idx
+                );
+            }
 
         }
 
