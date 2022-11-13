@@ -21,7 +21,7 @@ ALL_OBJ := $(OBJ) $(PERF_OBJ) $(TEST_OBJ) solver$(bits)PAR.o extension_perf$(bit
 
 all: $(BIN) nauty/geng nauty/directg nauty/listg
 
-CLEAN_REGEX := {0,16,32}?(-PAR)
+CLEAN_REGEX := {0,16,32}?(-NOVEC)?(-PAR)
 
 .PHONY: clean clean-bin clean-obj help
 clean-obj:
