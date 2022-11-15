@@ -116,37 +116,5 @@ int main(int argc, char **argv)
     cout << t << " inversion in time: " <<
         delta << " s or " << mhz << " Mhz" << endl;
 
-#if GF2_bits == 16
-    vector<__m256i> av(t);
-    vector<__m256i> bv(t);
-    vector<__m256i> pv(t);
-    for (uint64_t i = 0; i < t; i++)
-    {
-        av[i] = _mm256_set_epi64x(
-            global::randgen(),
-            global::randgen(),
-            global::randgen(),
-            global::randgen()
-        );
-        bv[i] = _mm256_set_epi64x(
-            global::randgen(),
-            global::randgen(),
-            global::randgen(),
-            global::randgen()
-        );
-    }
-
-    start = omp_get_wtime();
-    for (uint64_t i = 0; i < t; i++)
-        pv[i] = global::F.wide_mul(av[i], bv[i]);
-    end = omp_get_wtime();
-    int n = 16;
-    delta = end - start;
-    mhz = n*t / delta;
-    mhz /= 1e6;
-
-    cout << "mHz " << mhz << " time " << delta << " amount " << n*t << endl;
-
-#endif
     return 0;
 }
