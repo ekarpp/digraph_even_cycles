@@ -12,5 +12,5 @@ do
     ./k_gen.py $v $FOLDER
 
     ./erdos_renyi.py $v $(( $v*$DEGREE )) $NUM_GRAPHS $FOLDER
-    ./config_model.py $v $DEGREE $NUM_GRAPHS $FOLDER
+    ./undir_config_model.py $v $DEGREE $NUM_GRAPHS $FOLDER
 done
