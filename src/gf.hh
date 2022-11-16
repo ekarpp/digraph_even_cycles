@@ -114,113 +114,60 @@ public:
 #if GF2_bits == 16
     __m256i wide_mul(__m256i a, __m256i b)
     {
-        /* al/bl might not be needed, just use a/b */
-        __m256i lomask = _mm256_set_epi64x(
-            0xFFFF,
-            0xFFFF,
-            0xFFFF,
-            0xFFFF
-        );
-
-        const __m256i al = _mm256_and_si256(
-            a,
-            lomask
-        );
-        const __m256i bl = _mm256_and_si256(
-            b,
-            lomask
-        );
-        const __m256i ah = _mm256_srli_epi64(
-            a,
-            32
-        );
-        const __m256i bh = _mm256_srli_epi64(
-            b,
-            32
-        );
-
-        const __m128i prodhi = _mm_or_si128(
-            _mm_unpacklo_epi64(
+        const __m128i prodlo = _mm_blend_epi32(
+            _mm_shuffle_epi32(
                 _mm_clmulepi64_si128(
-                    _mm256_extractf128_si256(al, 1),
-                    _mm256_extractf128_si256(bl, 1),
-                    0x00
-                    ),
-                _mm_clmulepi64_si128(
-                    _mm256_extractf128_si256(al, 1),
-                    _mm256_extractf128_si256(bl, 1),
+                    _mm256_extractf128_si256(a, 0),
+                    _mm256_extractf128_si256(b, 0),
                     0x11
-                    )
                 ),
-            _mm_slli_epi64(
-                _mm_unpacklo_epi64(
-                    _mm_clmulepi64_si128(
-                        _mm256_extractf128_si256(ah, 1),
-                        _mm256_extractf128_si256(bh, 1),
-                        0x00
-                        ),
-                    _mm_clmulepi64_si128(
-                        _mm256_extractf128_si256(ah, 1),
-                        _mm256_extractf128_si256(bh, 1),
-                        0x11
-                        )
-                    ),
-                32
-                )
-            );
-
-        const __m128i prodlo = _mm_or_si128(
-            _mm_unpacklo_epi64(
+                0x8D
+            ),
+            _mm_shuffle_epi32(
                 _mm_clmulepi64_si128(
-                    _mm256_extractf128_si256(al, 0),
-                    _mm256_extractf128_si256(bl, 0),
+                    _mm256_extractf128_si256(a, 0),
+                    _mm256_extractf128_si256(b, 0),
                     0x00
-                    ),
-                _mm_clmulepi64_si128(
-                    _mm256_extractf128_si256(al, 0),
-                    _mm256_extractf128_si256(bl, 0),
-                    0x11
-                    )
                 ),
-            _mm_slli_epi64(
-                _mm_unpacklo_epi64(
-                    _mm_clmulepi64_si128(
-                        _mm256_extractf128_si256(ah, 0),
-                        _mm256_extractf128_si256(bh, 0),
-                        0x00
-                        ),
-                    _mm_clmulepi64_si128(
-                        _mm256_extractf128_si256(ah, 0),
-                        _mm256_extractf128_si256(bh, 0),
-                        0x11
-                        )
-                    ),
-                32
-                )
-            );
-
-        __m256i prod = _mm256_set_m128i(prodhi, prodlo);
-
-        lomask = _mm256_set_epi32(
-            0xFFFF,
-            0xFFFF,
-            0xFFFF,
-            0xFFFF,
-            0xFFFF,
-            0xFFFF,
-            0xFFFF,
-            0xFFFF
+                0xD8
+            ),
+            0x3
         );
-        __m256i lo = _mm256_and_si256(
+
+        const __m128i prodhi = _mm_blend_epi32(
+            _mm_shuffle_epi32(
+                _mm_clmulepi64_si128(
+                    _mm256_extractf128_si256(a, 1),
+                    _mm256_extractf128_si256(b, 1),
+                    0x11
+                ),
+                0x8D
+            ),
+            _mm_shuffle_epi32(
+                _mm_clmulepi64_si128(
+                    _mm256_extractf128_si256(a, 1),
+                    _mm256_extractf128_si256(b, 1),
+                    0x00
+                ),
+                0xD8
+            ),
+            0x3
+        );
+
+        const __m256i prod = _mm256_set_m128i(prodhi, prodlo);
+
+        const __m256i lomask = _mm256_set1_epi32(0xFFFF);
+
+        const __m256i lo = _mm256_and_si256(
             prod,
             lomask
         );
-        __m256i hi = _mm256_srli_epi32(
+        const __m256i hi = _mm256_srli_epi32(
             prod,
             16 // GF2_bits
         );
 
-        __m256i tmp = _mm256_xor_si256(
+        const __m256i tmp = _mm256_xor_si256(
             hi,
             _mm256_xor_si256(
                 _mm256_srli_epi16(hi, 14),
@@ -231,7 +178,7 @@ public:
             )
         );
 
-        __m256i rem = _mm256_xor_si256(
+        const __m256i rem = _mm256_xor_si256(
             tmp,
             _mm256_xor_si256(
                 _mm256_slli_epi16(tmp, 2),
