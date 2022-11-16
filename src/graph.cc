@@ -47,11 +47,11 @@ void Graph::sample_adjacency()
 /* goes through all cycles that contain vertex start
  * and updates len accordingly.
  * len contains the length of the shortest found so far */
-void Graph::dfs_cycle(int start,
-                      int depth,
-                      int v,
-                      vector<bool> &visited,
-                      int *len) const
+int Graph::dfs_cycle(int start,
+                     int depth,
+                     int v,
+                     vector<bool> &visited,
+                     int len) const
 {
     visited[v] = true;
     vector<int> nbors = this->adj[v];
@@ -59,12 +59,10 @@ void Graph::dfs_cycle(int start,
     {
         int u = nbors[i];
         if (!visited[u])
-            this->dfs_cycle(start, depth + 1, u, visited, len);
-        else
-        {
-            if (u == start && depth % 2 == 0 && depth < *len)
-                *len = depth;
-        }
+            len = this->dfs_cycle(start, depth + 1, u, visited, len);
+        else if (u == start && depth % 2 == 0 && depth < len)
+            len = depth;
     }
     visited[v] = false;
+    return len;
 }

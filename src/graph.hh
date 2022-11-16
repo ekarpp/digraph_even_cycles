@@ -21,10 +21,10 @@ public:
     int get_n() const { return n; }
     FMatrix &get_A() { return A; }
 
-    void dfs_cycle(int start,
+    int dfs_cycle(int start,
                    int depth,
                    int v,
                    std::vector<bool> &visited,
-                   int *len) const;
+                   int len) const;
 };
 #endif
