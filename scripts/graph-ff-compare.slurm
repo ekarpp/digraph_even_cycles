@@ -21,11 +21,12 @@ make test
 
 SEED=123
 
-source scripts/helpers
+source scripts/graph_helpers
 
 FOLDER="ff_comparison"
 RES_PTH="results/ff_compare"
-mkdir -p ${RES_PTH}
+mkdir -p "${RES_PTH}/seq"
+mkdir -p "${RES_PTH}/par"
 
 for b in 0,16,32
 do
