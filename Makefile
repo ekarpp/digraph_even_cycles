@@ -201,7 +201,7 @@ test0: digraph-tests0
 
 test: test32 test16 test0
 
-geng-test: digraph-tests nauty/geng nauty/directg nauty/listg
+geng-test: digraph-tests$(BITS) nauty/geng nauty/directg nauty/listg
 	mkdir -p geng-fail/$(vert)
 	nauty/geng -q $(vert) | nauty/directg -q | nauty/listg -aq | ./digraph-tests$(BITS) -c
 
