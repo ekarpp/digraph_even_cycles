@@ -12,69 +12,7 @@
 
 typedef long long int long4_t __attribute__ ((vector_size (32)));
 
-#define VECTOR_N 8
-
-#define COEFF_LOOP(index)                                               \
-    {                                                                   \
-        for (int col = 0; col < this->cols - 1; col++)                  \
-            coeffs[col] = _mm256_blend_epi32(                           \
-                _mm256_permutevar8x32_epi32(coeffs[col + 0], idx),      \
-                _mm256_permutevar8x32_epi32(coeffs[col + 1], idx),      \
-                0xFF >> index                                           \
-            );                                                          \
-    }
-
-#define DET_LOOP(index)                                         \
-    {                                                           \
-        int r0 = VECTOR_N*col + index;                          \
-        long4_t mx;                                             \
-        int mxi = -1;                                           \
-        long4_t cmpmsk = _mm256_set_epi64x(                     \
-            0xFFFFull << 32,                                    \
-            0,                                                  \
-            0,                                                  \
-            0                                                   \
-        );                                                      \
-        if (index >= 4)                                         \
-            cmpmsk = _mm256_permute4x64_epi64(cmpmsk, 0x0C);    \
-        cmpmsk = _mm256_srli_si256(cmpmsk, 4*(index%4));        \
-        for (int row = r0; row < this->rows; row++)             \
-        {                                                       \
-            char ZF = _mm256_testz_si256(                       \
-                cmpmsk,                                         \
-                this->get(row,col)                              \
-            );                                                  \
-            if (ZF == 0)                                        \
-            {                                                   \
-                mx = this->get(row,col);                        \
-                mxi = row;                                      \
-                break;                                          \
-            }                                                   \
-        }                                                       \
-        if (mxi == -1)                                          \
-            return global::F.zero();                            \
-        uint64_t mx_ext =                                       \
-            _mm256_extract_epi32(mx, VECTOR_N - 1 - index);     \
-        if (mxi != r0)                                          \
-            this->swap_rows(mxi, r0);                           \
-        /* vectorize? */                                        \
-        det = global::F.rem(                                    \
-            global::F.clmul(det, mx_ext)                        \
-        );                                                      \
-        mx_ext = global::F.ext_euclid(mx_ext);                  \
-        this->mul_row(r0, mx_ext);                              \
-        /* vectorize end? */                                    \
-        char mask = VECTOR_N - 1 - index;                       \
-        long4_t idx = _mm256_set1_epi32(mask);                  \
-        for (int row = r0 + 1; row < this->rows; row++)         \
-        {                                                       \
-            long4_t val = _mm256_permutevar8x32_epi32(          \
-                this->get(row, col),                            \
-                idx                                             \
-            );                                                  \
-            this->row_op(r0, row, val);                         \
-        }                                                       \
-    }
+constexpr int VECTOR_N = 8;
 
 class Packed_FMatrix
 {
@@ -94,6 +32,111 @@ private:
     {
         this->m[row*this->cols + col] = v;
     }
+
+    template <int index>
+    void coeff_loop(std::vector<long4_t> &coeffs)
+    {
+        /* cyclic permutation to the right.
+         * maybe could use bit ops? (did not work past 128 bit lanes?) */
+        const long4_t cycle_idx = _mm256_set_epi32(
+            0b000,
+            0b111,
+            0b110,
+            0b101,
+            0b100,
+            0b011,
+            0b010,
+            0b001
+        );
+
+        long4_t idx = _mm256_set_epi32(
+            0b111,
+            0b110,
+            0b101,
+            0b100,
+            0b011,
+            0b010,
+            0b001,
+            0b000
+        );
+
+        /* compiler should optimize this */
+        for (int i = 0; i < index; i++)
+            idx = _mm256_permutevar8x32_epi32(idx, cycle_idx);
+
+        for (int col = 0; col < this->cols - 1; col++)
+            coeffs[col] = _mm256_blend_epi32(
+                _mm256_permutevar8x32_epi32(coeffs[col + 0], idx),
+                _mm256_permutevar8x32_epi32(coeffs[col + 1], idx),
+                0xFF >> index
+            );
+
+        coeffs[this->cols - 1] = _mm256_permutevar8x32_epi32(
+            coeffs[this->cols - 1],
+            idx
+        );
+    }
+
+
+    template <int index>
+    void det_loop(int col, uint64_t &det)
+    {
+        int r0 = VECTOR_N*col + index;
+        long4_t mx;
+        int mxi = -1;
+        long4_t cmpmsk = _mm256_set_epi64x(
+            0xFFFFull << 32,
+            0,
+            0,
+            0
+        );
+        if (index >= 4)
+            cmpmsk = _mm256_permute4x64_epi64(cmpmsk, 0x0C);
+        cmpmsk = _mm256_srli_si256(cmpmsk, 4*(index%4));
+        for (int row = r0; row < this->rows; row++)
+        {
+            char ZF = _mm256_testz_si256(
+                cmpmsk,
+                this->get(row,col)
+            );
+            if (ZF == 0)
+            {
+                mx = this->get(row,col);
+                mxi = row;
+                break;
+            }
+        }
+        if (mxi == -1)
+        {
+            det = 0x0;
+            return;
+        }
+
+        uint64_t mx_ext =
+            _mm256_extract_epi32(mx, VECTOR_N - 1 - index);
+        if (mxi != r0)
+            this->swap_rows(mxi, r0);
+        /* vectorize? */
+        det = global::F.rem(
+            global::F.clmul(det, mx_ext)
+        );
+        mx_ext = global::F.ext_euclid(mx_ext);
+        this->mul_row(r0, mx_ext);
+        /* vectorize end? */
+        char mask = VECTOR_N - 1 - index;
+        long4_t idx = _mm256_set1_epi32(mask);
+        for (int row = r0 + 1; row < this->rows; row++)
+        {
+            long4_t val = _mm256_permutevar8x32_epi32(
+                this->get(row, col),
+                idx
+            );
+            this->row_op(r0, row, val);
+        }
+
+        return;
+    }
+
 
 public:
     Packed_FMatrix(
@@ -255,103 +298,27 @@ public:
             switch (this->nmod)
             {
             case 1:
-                idx = _mm256_set_epi32(
-                    0b000,
-                    0b111,
-                    0b110,
-                    0b101,
-                    0b100,
-                    0b011,
-                    0b010,
-                    0b001
-                );
-                COEFF_LOOP(1);
+                coeff_loop<1>(coeffs);
                 break;
             case 2:
-                idx = _mm256_set_epi32(
-                    0b001,
-                    0b000,
-                    0b111,
-                    0b110,
-                    0b101,
-                    0b100,
-                    0b011,
-                    0b010
-                );
-                COEFF_LOOP(2);
+                coeff_loop<2>(coeffs);
                 break;
             case 3:
-                idx = _mm256_set_epi32(
-                    0b010,
-                    0b001,
-                    0b000,
-                    0b111,
-                    0b110,
-                    0b101,
-                    0b100,
-                    0b011
-                );
-                COEFF_LOOP(3);
+                coeff_loop<3>(coeffs);
                 break;
             case 4:
-                idx = _mm256_set_epi32(
-                    0b011,
-                    0b010,
-                    0b001,
-                    0b000,
-                    0b111,
-                    0b110,
-                    0b101,
-                    0b100
-                );
-                COEFF_LOOP(4);
+                coeff_loop<4>(coeffs);
                 break;
             case 5:
-                idx = _mm256_set_epi32(
-                    0b100,
-                    0b011,
-                    0b010,
-                    0b001,
-                    0b000,
-                    0b111,
-                    0b110,
-                    0b101
-                );
-                COEFF_LOOP(5);
+                coeff_loop<5>(coeffs);
                 break;
             case 6:
-                idx = _mm256_set_epi32(
-                    0b101,
-                    0b100,
-                    0b011,
-                    0b010,
-                    0b001,
-                    0b000,
-                    0b111,
-                    0b110
-                );
-                COEFF_LOOP(6);
+                coeff_loop<6>(coeffs);
                 break;
             case 7:
-                idx = _mm256_set_epi32(
-                    0b110,
-                    0b101,
-                    0b100,
-                    0b011,
-                    0b010,
-                    0b001,
-                    0b000,
-                    0b111
-                );
-                COEFF_LOOP(7);
+                coeff_loop<7>(coeffs);
                 break;
             }
-
-            coeffs[this->cols - 1] = _mm256_permutevar8x32_epi32(
-                coeffs[this->cols - 1],
-                idx
-            );
-
         }
 
         /* and do r2 left to right */
@@ -404,14 +371,11 @@ public:
         uint64_t det = 0x1;
         for (int col = 0; col < this->cols; col++)
         {
-            DET_LOOP(0);
-            DET_LOOP(1);
-            DET_LOOP(2);
-            DET_LOOP(3);
-            DET_LOOP(4);
-            DET_LOOP(5);
-            DET_LOOP(6);
-            DET_LOOP(7);
+            /* each "column" is a vector that has 8 real columns */
+            det_loop<0>(col, det); det_loop<1>(col, det);
+            det_loop<2>(col, det); det_loop<3>(col, det);
+            det_loop<4>(col, det); det_loop<5>(col, det);
+            det_loop<6>(col, det); det_loop<7>(col, det);
         }
         return GF_element(det);
     }
