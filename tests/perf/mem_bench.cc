@@ -7,13 +7,13 @@
 
 using namespace std;
 
-#define CORES 24
+constexpr uint64_t CORES = 24;
 // 4 GiBs
-#define N (1ull << 29)
-#define WARMUP (1ull << 25)
-#define GIBS (N*8 / (1ull << 30))
-// one line is 8*64 bits
-#define LINE 8
+constexpr uint64_t N = (1ull << 29);
+constexpr uint64_t WARMUP = (1ull << 25);
+constexpr uint64_t GIBS = (N*8 / (1ull << 30));
+// one cache line is 8*64 bits
+constexpr int LINE = 8;
 
 int main(void)
 {
