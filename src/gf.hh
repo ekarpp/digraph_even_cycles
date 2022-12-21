@@ -19,10 +19,10 @@ class Extension_element;
 class GF2n
 {
 private:
-    /* largest possible element in the field */
+    /* largest possible element in the field  + 1 */
     uint64_t mask;
-    int n;
-    uint64_t mod;
+    const int n;
+    const uint64_t mod;
 
     uint64_t q_plus;
     uint64_t mod_ast;
@@ -47,29 +47,16 @@ private:
 
 public:
     GF2n() {}
-#if GF2_bits == 0
-    void init(const int n, const uint64_t mod)
-#else
-    void init()
-#endif
+
+    GF2n(const int e, const uin64_t g): e(n), mod(g)
     {
-#if GF2_bits == 16
-        this->n = GF2_bits;
-        /* x^16 + x^5 + x^3 + x^2 +  1 */
-        this->mod = 0x1002D;
-        this->mask = 0xFFFF;
-#elif GF2_bits == 32
-        this->n = GF2_bits;
-        /* x^32 + x^7 + x^3 + x^2 + 1 */
-        this->mod = 0x10000008D;
-        this->mask = 0xFFFFFFFF;
-#else
-        this->n = n;
-        this->mod = mod;
         this->mask = (1ll << this->n) - 1;
-        this->q_plus = this->quo(1ull << (2*this->n), mod);
-        this->mod_ast = this->mask & mod;
-#endif
+        if (n != 16 || n != 32)
+        {
+            this->q_plus = this->quo(1ull << (2*this->n), mod);
+            this->mod_ast = this->mask & mod;
+        }
+
         if (global::output)
         {
             std::cout << "initialized GF(2^" << this->n << ") with modulus: ";
@@ -93,25 +80,36 @@ public:
      */
     uint64_t rem(uint64_t a) const
     {
+        return rem<this->n>(a);
+    }
+
+    template <int exp>
+    uint64_t rem(uint64_t a) const
+    {
         uint64_t lo = a & this->mask;
         uint64_t hi = a >> this->n;
 
-#if GF2_bits == 16
-        uint64_t r = hi ^ (hi >> 14) ^ (hi >> 13) ^ (hi >> 11);
-        r ^= (r << 2) ^ (r << 3) ^ (r << 5);
-#elif GF2_bits == 32
-        uint64_t r = hi ^ (hi >> 30) ^ (hi >> 29) ^ (hi >> 25);
-        r ^= (r << 2) ^ (r << 3) ^ (r << 7);
-#else
-        uint64_t r = this->clmul(hi, this->q_plus);
-        r >>= this->n;
-        r = this->clmul(r, this->mod_ast);
-#endif
-        r &= this->mask;
-        return r ^ lo;
+        switch (exp)
+        {
+        case 16:
+            uint64_t r = hi ^ (hi >> 14) ^ (hi >> 13) ^ (hi >> 11);
+            r ^= (r << 2) ^ (r << 3) ^ (r << 5);
+            r &= this->mask;
+            return r ^ lo;
+        case 32:
+            uint64_t r = hi ^ (hi >> 30) ^ (hi >> 29) ^ (hi >> 25);
+            r ^= (r << 2) ^ (r << 3) ^ (r << 7);
+            r &= this->mask;
+            return r ^ lo;
+        default:
+            uint64_t r = this->clmul(hi, this->q_plus);
+            r >>= this->n;
+            r = this->clmul(r, this->mod_ast);
+            r &= this->mask;
+            return r ^ lo;
+        }
     }
 
-#if GF2_bits == 16
     __m256i wide_mul(__m256i a, __m256i b)
     {
         const __m128i prodlo = _mm_blend_epi32(
@@ -212,7 +210,6 @@ public:
 
         return r ^ lo;
     }
-#endif
 
     /* returns s s.t. for some t: s*a + t*field.mod = gcd(field.mod, a)
      * <=> s*a + t*field.mod = 1 taking mod field.mod we get
@@ -257,7 +254,6 @@ public:
         return lo;
     }
 
-#if GF2_bits == 16
     uint64_t packed_clmul(uint64_t a, uint64_t b) const
     {
         __m128i aa = _mm_set_epi64x(a >> 32, a & this->mask);
@@ -271,7 +267,6 @@ public:
 
         return res;
     }
-#endif
 
     int get_n() const { return this->n; }
     uint64_t get_mod() const { return this->mod; }

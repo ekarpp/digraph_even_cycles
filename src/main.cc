@@ -63,6 +63,7 @@ int main(int argc, char **argv)
         cout << "-q for no progress output from solver" << endl;
         cout << "-t to output time spent computing" << endl;
         cout << "-u if the input graph is undirected, directs it randomly" << endl;
+        cout << "-n finite field size. 16 and 32 optimized. has to be <= 32"
         cout << "-s for seed" << endl;
         return 0;
     }
@@ -74,8 +75,9 @@ int main(int argc, char **argv)
     bool duration = false;
     bool direct = false;
     uint64_t seed = time(nullptr);
+    int n = 16;
 
-    while ((opt = getopt(argc, argv, "utqbf:s:")) != -1)
+    while ((opt = getopt(argc, argv, "utqbf:s:n:")) != -1)
     {
         switch (opt)
         {
@@ -99,24 +101,42 @@ int main(int argc, char **argv)
         case 'q':
             global::output = false;
             break;
+        case 'n':
+            n = stoi(optarg);
+            break;
         case '?':
             cout << "call with no arguments for help" << endl;
             return -1;
         }
     }
 
+    if (n > 32)
+    {
+        cout << "please n <= 32" << endl;
+        return -1;
+    }
+
     cout << "seed: " << seed << endl;
     global::randgen.init(seed);
 
-#if GF2_bits == 0
-    int n = 24;
-    uint64_t mod = util::irred_poly(n);
-    global::F.init(n, mod);
-    global::E.init(n, mod);
-#else
-    global::F.init();
-    global::E.init();
-#endif
+    uint64_t mod;
+    switch (n)
+    {
+    case 16:
+        /* x^16 + x^5 + x^3 + x^2 +  1 */
+        mod = 0x1002D;
+        break;
+    case 32:
+        /* x^32 + x^7 + x^3 + x^2 + 1 */
+        mod = 0x10000008D;
+        break;
+    default:
+        mod = util::irred_poly(n);
+        break;
+    }
+
+    global::F = GF2n(n, mod);
+    global::E = Extension(n, mod);
 
     if (direct)
         util::direct_undirected(graph);
@@ -132,15 +152,15 @@ int main(int argc, char **argv)
         start = omp_get_wtime();
         int k = s.shortest_even_cycle_brute(G);
         end = omp_get_wtime();
-        cout << k << endl;
     }
     else
     {
         start = omp_get_wtime();
         int k = s.shortest_even_cycle(G);
         end = omp_get_wtime();
-        cout << k << endl;
     }
+
+    cout << k << endl;
 
     if (duration) {
         double delta = end - start;

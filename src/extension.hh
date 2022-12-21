@@ -74,17 +74,15 @@ public:
 
 };
 
-#if GF2_bits == 16
-typedef uint128_t kronecker_form;
-#else
 struct kronecker_form
 {
-/* MSB */
+    /* MSB */
     uint256_t big;
-/* 32bit LSB */
+    /* 32bit LSB */
     uint64_t small;
+    /* for E(4^16) */
+    uint128_t b16;
 };
-#endif
 
 /* Extension of GF(2^n) to the ring E(4^n).
  * If GF(2^n) = Z2 / <g_2> for irreducible polynomial
@@ -93,18 +91,12 @@ struct kronecker_form
 class Extension
 {
 private:
-    int n;
-    uint64_t mod;
+    const int n;
+    const uint64_t mod;
     uint64_t mask;
 
-#if GF2_bits == 0
     std::vector<uint64_t> mod_ast;
     std::vector<uint64_t> q_plus;
-#else
-    extension_repr mod_ast;
-    extension_repr q_plus;
-#endif
-
 
     extension_repr n_prime;
     extension_repr r_squared;
@@ -208,40 +200,9 @@ private:
         return q;
     }
 
-public:
-    Extension() {}
-
-#if GF2_bits == 0
-    void init(const int n, const uint64_t mod)
-#else
-    void init()
-#endif
+    void init_varying_size()
     {
-#if GF2_bits == 16
-        this->n = GF2_bits;
-
-        /* x^16 + x^5 + x^3 + x^2 +  1 */
-        this->mod = 0x1002D;
-        this->mask = 0xFFFF;
-
-        // N' = x^15 + x^14 + 3x^12 + x^7 + 3x^5 + 3x^4 + x^3 + x^2 + 3
-        this->n_prime = { 0x1031, 0xD0BD };
-        this->r_squared = { 0x018C, 0x0451 };
-#elif GF2_bits == 32
-        this->n = GF2_bits;
-
-        /* x^32 + x^7 + x^3 + x^2 + 1 */
-        this->mod = 0x10000008D;
-        this->mask = 0xFFFFFFFF;
-
-        // N' = x^30 + 3x^29 + x^28 + x^27 + x^26 + x^25 + x^23 + 3x^22 + x^21 + 2x^20 + 2x^19 + 3x^18 + x^15 + 2x^14 + 3x^13 + 2x^12 + x^10 + 3x^9 + 2x^8 + 2x^5 + 3x^4 + x^3 + x^2 + 3
-        this->n_prime = { 0x205C7331, 0x7EE4A61D };
-        this->r_squared = { 0x000006AC, 0x00004051 };
-#else
-        this->n = n;
-        this->mod = mod;
-        this->mask = (1ll << this->n) - 1;
-
+        /* "intel rem" distributive law optimization */
         extension_repr q_plus_repr =
             this->quo({0, 1ull << (2*this->n)} , { 0, this->mod });
         for (int i = 0; i < this->n + 1; i++)
@@ -263,14 +224,15 @@ public:
             }
         }
 
+        /* montgomery multiplication */
         this->r_squared = {
             0,
             1ull << (this->n * 2)
         };
         this->r_squared = this->rem(this->r_squared);
 
-        // deg == 2*n
-        extension_repr r = { 0x0, 1ull << (this->n*2) };
+        // deg == n
+        extension_repr r = { 0x0, 1ull << this->n };
         int N = 1 << this->n;
         N -= 1;
         N *= 2;
@@ -289,9 +251,31 @@ public:
             idx >>= 1;
         }
 
-        // deg <= 3n - 1, overflow when 3n - 1 > 64 <=> n > 65 / 4 ~ 21.667
-        this->n_prime = this->dumb_quo(r_prime);
-#endif
+        // deg <= 2n - 1
+        this->n_prime = this->quo(this->mul(r_prime, r), { 0x0, this->mod });
+    }
+
+public:
+    Extension() {}
+
+    Extension(const int e, const uin64_t g): n(e), mod(g)
+    {
+        this->mask = (1ll << this->n) - 1;
+
+        switch (n)
+        {
+        case 16:
+            this->n_prime = { 0x1031, 0xD0BD };
+            this->r_squared = { 0x018C, 0x0451 };
+            break;
+        case 32:
+            this->n_prime = { 0x205C7331, 0x7EE4A61D };
+            this->r_squared = { 0x000006AC, 0x00004051 };
+            break;
+        default:
+            init_varying_size();
+            break;
+        }
 
         if (global::output)
         {
@@ -329,110 +313,69 @@ public:
         return a;
     }
 
+    extension_repr intel_rem(extension_repr a) const
+    {
+        return intel_rem<this->n>(a);
+    }
+
     /* https://dl.acm.org/doi/10.1016/j.ipl.2010.04.011 */
+    template <int exp>
     extension_repr intel_rem(extension_repr a) const
     {
         extension_repr hi = { a.hi >> this->n, a.lo >> this->n };
         extension_repr lo = { a.hi & this->mask, a.lo & this->mask };
 
-#if GF2_bits == 16
-        extension_repr tmp = hi >> 14;
-        tmp = this->add(tmp, hi >> 13);
-        tmp = this->add(tmp, hi >> 11);
-        tmp = this->subtract(hi, tmp);
-
-        extension_repr r = this->add(tmp, tmp << 2);
-        r = this->add(r, tmp << 3);
-        r = this->add(r, tmp << 5);
-#elif GF2_bits == 32
-        extension_repr tmp = hi >> 30;
-        tmp = this->add(tmp, hi >> 29);
-        tmp = this->add(tmp, hi >> 25);
-        tmp = this->subtract(hi, tmp);
-
-        extension_repr r = this->add(tmp, tmp << 2);
-        r = this->add(r, tmp << 3);
-        r = this->add(r, tmp << 7);
-#else
-        /* deg n-2 * deg n*/
-        extension_repr rem = { 0x0, 0x0 };
-        for (uint i = 0; i < this->q_plus.size() / 3; i++)
+        switch (exp)
         {
-            extension_repr tmp = this->mul_const(
-                hi,
-                { this->q_plus[3*i + 1], this->q_plus[3*i + 2] }
-            );
-            tmp <<= this->q_plus[3*i + 0];
-            rem = this->add(rem, tmp);
+        case 16:
+            extension_repr tmp = hi >> 14;
+            tmp = this->add(tmp, hi >> 13);
+            tmp = this->add(tmp, hi >> 11);
+            tmp = this->subtract(hi, tmp);
+
+            extension_repr r = this->add(tmp, tmp << 2);
+            r = this->add(r, tmp << 3);
+            r = this->add(r, tmp << 5);
+
+            r &= this->mask;
+            return this->subtract(lo, r);
+        case 32:
+            extension_repr tmp = hi >> 30;
+            tmp = this->add(tmp, hi >> 29);
+            tmp = this->add(tmp, hi >> 25);
+            tmp = this->subtract(hi, tmp);
+
+            extension_repr r = this->add(tmp, tmp << 2);
+            r = this->add(r, tmp << 3);
+            r = this->add(r, tmp << 7);
+
+            r &= this->mask;
+            return this->subtract(lo, r);
+        default:
+            /* deg n-2 * deg n*/
+            extension_repr rem = { 0x0, 0x0 };
+            for (uint i = 0; i < this->q_plus.size() / 3; i++)
+            {
+                extension_repr tmp = this->mul_const(
+                    hi,
+                    { this->q_plus[3*i + 1], this->q_plus[3*i + 2] }
+                );
+                tmp <<= this->q_plus[3*i + 0];
+                rem = this->add(rem, tmp);
+            }
+            rem >>= this->n;
+            /* deg n-1 * deg n - 2*/
+            extension_repr r = { 0x0, 0x0 };
+            for (uint i = 0; i < this->mod_ast.size(); i++)
+            {
+                extension_repr tmp = rem << this->mod_ast[i];
+                r = this->add(r, tmp);
+            }
+
+            r &= this->mask;
+            return this->subtract(lo, r);
         }
-        rem >>= this->n;
-        /* deg n-1 * deg n - 2*/
-        extension_repr r = { 0x0, 0x0 };
-        for (uint i = 0; i < this->mod_ast.size(); i++)
-        {
-            extension_repr tmp = rem << this->mod_ast[i];
-            r = this->add(r, tmp);
-        }
-#endif
-        r &= this->mask;
-        return this->subtract(lo, r);
     }
-
-#if GF2_bits == 16
-    extension_repr packed_intel_rem(extension_repr a) const
-    {
-        uint64_t pack_mask = (this->mask | (this->mask << 32));
-
-        extension_repr hi = a.shiftr_and(this->n, pack_mask);
-        extension_repr lo = a & pack_mask;
-
-        uint64_t m = 0b11 | (0b11ull << 32);
-        extension_repr tmp = hi.shiftr_and(14, m);
-
-        m = 0b111 | (0b111ull << 32);
-        tmp = this->add(
-            tmp,
-            hi.shiftr_and(13, m)
-        );
-        m = 0b11111 | (0b11111ull << 32);
-        tmp = this->add(
-            tmp,
-            hi.shiftr_and(11, m)
-        );
-        tmp = this->subtract(hi, tmp);
-
-        extension_repr r = this->add(tmp, tmp << 2);
-        r = this->add(r, tmp << 3);
-        r = this->add(r, tmp << 5);
-
-        r &= pack_mask;
-        return this->subtract(lo, r);
-    }
-
-    extension_repr packed_fast_mul(extension_repr a, extension_repr b) const
-    {
-        uint64_t alobhi = global::F.packed_clmul(a.lo, b.hi);
-        uint64_t ahiblo = global::F.packed_clmul(a.hi, b.lo);
-
-        uint64_t hi = 0;
-        uint64_t lo = 0;
-
-        /* handle product of lo and lo */
-        #pragma GCC unroll 32
-        for (int i = 0; i < GF2_bits; i++)
-        {
-            uint64_t msk = 0;
-            if ((b.lo >> i) & 1)
-                msk |= 0xFFFFFFFFull;
-            if ((b.lo >> (i+32)) & 1)
-                msk |= 0xFFFFFFFFull << 32;
-            hi ^= (a.lo << i) & lo & msk;
-            lo ^= (a.lo << i) & msk;
-        }
-
-        return { alobhi ^ ahiblo ^ hi, lo };
-    }
-#endif
 
     extension_repr mont_rem(extension_repr a) const
     {
@@ -513,6 +456,12 @@ public:
 
     extension_repr fast_mul(extension_repr a, extension_repr b) const
     {
+        return fast_mul<this->n>(a, b);
+    }
+
+    template <int exp>
+    extension_repr fast_mul(extension_repr a, extension_repr b) const
+    {
         /* clean this up */
         __m128i aa = _mm_set_epi64x(a.hi, a.lo);
         __m128i bb = _mm_set_epi64x(b.hi, b.lo);
@@ -528,11 +477,7 @@ public:
 
         /* handle product of lo and lo */
         #pragma GCC unroll 32
-#if GF2_bits == 16
-        for (int i = 0; i <= GF2_bits; i++)
-#else
-        for (int i = 0; i <= 32; i++)
-#endif
+        for (int i = 0; i <= exp; i++)
         {
             if ((b.lo >> i)&1)
             {
@@ -544,7 +489,13 @@ public:
         return { hi1 ^ hi2 ^ hi, lo };
     }
 
+    extension_repr kronecker_mul(extension_repr a, extension_repr b) const
+    {
+        return kronecker_mul<this->n>(a, b);
+    }
+
     /* only works if deg <= 15 for a AND b */
+    template <int exp>
     extension_repr kronecker_mul(extension_repr a, extension_repr b) const
     {
         extension_repr ret;
@@ -553,24 +504,28 @@ public:
          * corresponds to a coefficient modulo 4. */
         kronecker_form aa = this->kronecker_substitution(a);
         kronecker_form bb = this->kronecker_substitution(b);
-#if GF2_bits == 16
-        uint256_t prod = bit::mul_128bit(aa, bb);
 
-        /* first store the interesting bits to a uint64_t,
-         * that is the first two bits of each 8 bit limb.
-         * it fits, as we have deg <= 15+15 and each coefficient
-         * uses two bits. */
-        uint64_t extmask = 0x0303030303030303ull;
-        uint64_t tmp = 0;
-        for (int i = 0; i < 4; i++)
-            tmp |= _pext_u64(prod.words[i], extmask) << (16*i);
+        if (exp == 16)
+        {
+            uint256_t prod = bit::mul_128bit(aa.b16, bb.b16);
 
-        /* extract the usual hi/lo representation */
-        uint64_t hiextmask = 0xAAAAAAAAAAAAAAAAull;
-        uint64_t loextmask = 0x5555555555555555ull;
-        ret.lo = _pext_u64(tmp, loextmask);
-        ret.hi = _pext_u64(tmp, hiextmask);
-#else
+            /* first store the interesting bits to a uint64_t,
+             * that is the first two bits of each 8 bit limb.
+             * it fits, as we have deg <= 15+15 and each coefficient
+             * uses two bits. */
+            uint64_t extmask = 0x0303030303030303ull;
+            uint64_t tmp = 0;
+            for (int i = 0; i < 4; i++)
+                tmp |= _pext_u64(prod.words[i], extmask) << (16*i);
+
+            /* extract the usual hi/lo representation */
+            uint64_t hiextmask = 0xAAAAAAAAAAAAAAAAull;
+            uint64_t loextmask = 0x5555555555555555ull;
+            ret.lo = _pext_u64(tmp, loextmask);
+            ret.hi = _pext_u64(tmp, hiextmask);
+            return ret;
+        }
+
         uint512_t ahbh = bit::mul_256bit(aa.big, bb.big);
         uint512_t ahbl = bit::mul_256bit_64bit(aa.big, bb.small);
         uint512_t albh = bit::mul_256bit_64bit(bb.big, aa.small);
@@ -621,10 +576,15 @@ public:
             ret.hi |= _pext_u64(tmp[i], hiextmask) << (28*i);
             ret.lo |= _pext_u64(tmp[i], loextmask) << (28*i);
         }
-#endif
         return ret;
     }
 
+    kronecker_form kronecker_substitution(extension_repr x) const
+    {
+        return kronecker_substitution<this->n>(x);
+    }
+
+    template <int exp>
     kronecker_form kronecker_substitution(extension_repr x) const
     {
         /* combine lo and hi to single uint64_t
@@ -636,16 +596,18 @@ public:
 
         kronecker_form kron;
 
-#if GF2_bits == 16
-        /* contains the "polynomial" after kronecker substitution.
-         * for us it is sufficient that each coefficient has 8 bits,
-         * (see details in thesis) thus we need 16*8 = 128 bits
-         * for the polynomial after substitution. */
+        if (exp == 16)
+        {
+            /* contains the "polynomial" after kronecker substitution.
+             * for us it is sufficient that each coefficient has 8 bits,
+             * (see details in thesis) thus we need 16*8 = 128 bits
+             * for the polynomial after substitution. */
+            extmask = 0x0303030303030303ull;
+            kron.b16.words[0] = _pdep_u64(comb & 0xFFFF, extmask);
+            kron.b16.words[1] = _pdep_u64(comb >> 16, extmask);
+            return kron;
+        }
 
-        extmask = 0x0303030303030303ull;
-        kron.words[0] = _pdep_u64(comb & 0xFFFF, extmask);
-        kron.words[1] = _pdep_u64(comb >> 16, extmask);
-#else
         /* each coefficients takes 9 bits.
          * we have <= 32 coefficients. */
 
@@ -665,7 +627,6 @@ public:
         kron.big.words[3] >>= 3;
         kron.big.words[3] |= kron.small << 60;
         kron.small >>= 4;
-#endif
 
         return kron;
     }
