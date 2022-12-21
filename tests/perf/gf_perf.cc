@@ -9,11 +9,15 @@
 #include "../../src/gf.hh"
 #include "../../src/extension.hh"
 
+typedef long long int long4_t __attribute__ ((vector_size (32)));
+
+constexpr int VECTOR_N = 8;
+
 using namespace std;
 
 util::rand64bit global::randgen;
-GF2n global::F;
-Extension global::E;
+GF2_n *global::F;
+GR4_n *global::E;
 bool global::output = false;
 
 int main(int argc, char **argv)
@@ -22,16 +26,21 @@ int main(int argc, char **argv)
     {
         cout << "-s $int for seed" << endl;
         cout << "-t $int for amount of tests" << endl;
+        cout << "-n $int for size of finite field" << endl;
         return 0;
     }
     uint64_t seed = time(nullptr);
 
     uint64_t t = 1;
+    int n = 16;
     int opt;
-    while ((opt = getopt(argc, argv, "s:t:")) != -1)
+    while ((opt = getopt(argc, argv, "s:t:n:")) != -1)
     {
         switch (opt)
         {
+        case 'n':
+            n = stoi(optarg);
+            break;
         case 's':
             seed = stoi(optarg);
             break;
@@ -43,13 +52,28 @@ int main(int argc, char **argv)
 
     cout << "seed: " << seed << endl;
     global::randgen.init(seed);
-#if GF2_bits == 0
-    int n = 10;
-    uint64_t mod = util::irred_poly(n);
-    global::F.init(n, mod);
-#else
-    global::F.init();
-#endif
+
+    uint64_t mod;
+    switch (n)
+    {
+    case 16:
+        /* x^16 + x^5 + x^3 + x^2 +  1 */
+        mod = 0x1002D;
+        global::F = new GF2_16(16, mod);
+        global::E = new GR4_16(16, mod);
+        break;
+    case 32:
+        /* x^32 + x^7 + x^3 + x^2 + 1 */
+        mod = 0x10000008D;
+        global::F = new GF2_32(32, mod);
+        global::E = new GR4_32(32, mod);
+        break;
+    default:
+        mod = util::irred_poly(n);
+        global::F = new GF2_n(n, mod);
+        global::E = new GR4_n(n, mod);
+        break;
+    }
 
     vector<uint64_t> a(t);
     vector<uint64_t> b(t);
@@ -61,10 +85,10 @@ int main(int argc, char **argv)
 
     for (uint64_t i = 0; i < t; i++)
     {
-        a[i] = global::randgen() & global::F.get_mask();
-        b[i] = global::randgen() & global::F.get_mask();
-        aa[i] = global::F.random();
-        bb[i] = global::F.random();
+        a[i] = global::randgen() & global::F->get_mask();
+        b[i] = global::randgen() & global::F->get_mask();
+        aa[i] = global::F->random();
+        bb[i] = global::F->random();
     }
 
     double start;
@@ -85,7 +109,7 @@ int main(int argc, char **argv)
 
     start = omp_get_wtime();
     for (uint64_t i = 0; i < t; i++)
-        p[i] = global::F.clmul(a[i], b[i]);
+        p[i] = global::F->clmul(a[i], b[i]);
     end = omp_get_wtime();
     delta = (end - start);
     mhz = t / delta;
@@ -96,7 +120,7 @@ int main(int argc, char **argv)
 
     start = omp_get_wtime();
     for (uint64_t i = 0; i < t; i++)
-        r[i] = global::F.rem(p[i]);
+        r[i] = global::F->rem(p[i]);
     end = omp_get_wtime();
     delta = (end - start);
     mhz = t / delta;
@@ -107,7 +131,7 @@ int main(int argc, char **argv)
 
     start = omp_get_wtime();
     for (uint64_t i = 0; i < t; i++)
-        r[i] = global::F.ext_euclid(r[i]);
+        r[i] = global::F->ext_euclid(r[i]);
     end = omp_get_wtime();
     delta = (end - start);
     mhz = t / delta;
@@ -116,10 +140,13 @@ int main(int argc, char **argv)
     cout << t << " inversion in time: " <<
         delta << " s or " << mhz << " Mhz" << endl;
 
-#if GF2_bits == 16
-    vector<__m256i> av(t);
-    vector<__m256i> bv(t);
-    vector<__m256i> pv(t);
+
+    if (global::F->get_n() != 16)
+        return 0;
+
+    vector<long4_t> av(t);
+    vector<long4_t> bv(t);
+    vector<long4_t> pv(t);
     for (uint64_t i = 0; i < t; i++)
     {
         av[i] = _mm256_set_epi64x(
@@ -138,15 +165,14 @@ int main(int argc, char **argv)
 
     start = omp_get_wtime();
     for (uint64_t i = 0; i < t; i++)
-        pv[i] = global::F.wide_mul(av[i], bv[i]);
+        pv[i] = global::F->wide_mul(av[i], bv[i]);
     end = omp_get_wtime();
-    int n = 8;
     delta = end - start;
-    mhz = n*t / delta;
+    mhz = VECTOR_N*t / delta;
     mhz /= 1e6;
 
-    cout << "mHz " << mhz << " time " << delta << " amount " << n*t << endl;
-#endif
+    cout << VECTOR_N*t << " muls with wide mul in time: " <<
+        delta << " s or " << mhz << " Mhz" << endl;
 
     return 0;
 }

@@ -123,9 +123,9 @@ int main(int argc, char **argv)
 
     cout << "seed: " << seed << endl;
     global::randgen.init(seed);
+    omp_set_num_threads(p);
 
     uint64_t mod;
-
     switch (n)
     {
     case 16:
@@ -153,25 +153,11 @@ int main(int argc, char **argv)
     Graph G(graph);
     Solver s;
 
-    double start;
-    double end;
-
-    int k;
-
-    omp_set_num_threads(p);
-
-    if (brute)
-    {
-        start = omp_get_wtime();
-        k = s.shortest_even_cycle_brute(G);
-        end = omp_get_wtime();
-    }
-    else
-    {
-        start = omp_get_wtime();
-        k = s.shortest_even_cycle(G);
-        end = omp_get_wtime();
-    }
+    double start = omp_get_wtime();
+    int k = (brute)
+        ? s.shortest_even_cycle_brute(G)
+        : s.shortest_even_cycle(G);
+    double end = omp_get_wtime();
 
     cout << k << endl;
 
