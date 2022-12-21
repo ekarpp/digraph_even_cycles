@@ -63,7 +63,7 @@ int main(int argc, char **argv)
         cout << "-q for no progress output from solver" << endl;
         cout << "-t to output time spent computing" << endl;
         cout << "-u if the input graph is undirected, directs it randomly" << endl;
-        cout << "-n finite field size. 16 and 32 optimized. has to be <= 32" << endl;
+        cout << "-n finite field size. 16 and 32 optimized. has to be <= 32 and >= 3" << endl;
         cout << "-p for number of threads (defaults to all)" << endl;
         cout << "-s for seed" << endl;
         return 0;
@@ -115,9 +115,9 @@ int main(int argc, char **argv)
         }
     }
 
-    if (n > 32)
+    if (n > 32 || n < 3)
     {
-        cout << "please n <= 32" << endl;
+        cout << "please 3 <= n <= 32" << endl;
         return -1;
     }
 
@@ -131,19 +131,19 @@ int main(int argc, char **argv)
     case 16:
         /* x^16 + x^5 + x^3 + x^2 +  1 */
         mod = 0x1002D;
-        global::F = new GF2_16(mod, 16);
-        global::E = new GR4_16(mod, 16);
+        global::F = new GF2_16(16, mod);
+        global::E = new GR4_16(16, mod);
         break;
     case 32:
         /* x^32 + x^7 + x^3 + x^2 + 1 */
         mod = 0x10000008D;
-        global::F = new GF2_32(mod, 32);
-        global::E = new GR4_32(mod, 32);
+        global::F = new GF2_32(32, mod);
+        global::E = new GR4_32(32, mod);
         break;
     default:
         mod = util::irred_poly(n);
-        global::F = new GF2_n(mod, n);
-        global::E = new GR4_n(mod, n);
+        global::F = new GF2_n(n, mod);
+        global::E = new GR4_n(n, mod);
         break;
     }
 
