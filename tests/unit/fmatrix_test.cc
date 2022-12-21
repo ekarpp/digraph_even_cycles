@@ -7,9 +7,7 @@
 #include "../../src/fmatrix.hh"
 #include "../../src/gf.hh"
 #include "../../src/polynomial.hh"
-#if GF2_bits == 16
 #include "../../src/packed_fmatrix.hh"
-#endif
 
 using namespace std;
 
@@ -29,13 +27,13 @@ FMatrix_test::FMatrix_test(int dim, int tests = 0)
 FMatrix FMatrix_test::vandermonde()
 {
     valarray<GF_element> m(this->dim * this->dim);
-    uint64_t v = global::F.rem(global::randgen());
+    uint64_t v = global::F->rem(global::randgen());
 
     for (int row = 0; row < this->dim; row++)
     {
         const GF_element e = GF_element(v);
-        v = global::F.rem(v + 2);
-        GF_element prod = global::F.one();
+        v = global::F->rem(v + 2);
+        GF_element prod = global::F->one();
 
         for (int col = 0; col < this->dim; col++)
         {
@@ -49,7 +47,7 @@ FMatrix FMatrix_test::vandermonde()
 
 GF_element FMatrix_test::term(valarray<int> &perm, const FMatrix &m)
 {
-    GF_element ret = global::F.one();
+    GF_element ret = global::F->one();
     for (int col = 0; col < m.get_n(); col++)
         ret *= m(perm[col], col);
     return ret;
@@ -64,7 +62,7 @@ void FMatrix_test::swap(int i1, int i2, valarray<int> &perm)
 
 GF_element FMatrix_test::det_heap(const FMatrix &m)
 {
-    GF_element det = global::F.zero();
+    GF_element det = global::F->zero();
 
     int n = m.get_n();
 
@@ -109,7 +107,7 @@ FMatrix FMatrix_test::random(int n = 0)
 
     for (int row = 0; row < n; row++)
         for (int col = 0; col < n; col++)
-            m[row*n + col] = global::F.random();
+            m[row*n + col] = global::F->random();
 
     return FMatrix(n, m);
 }
@@ -121,7 +119,7 @@ void FMatrix_test::test_determinant_vandermonde()
     for (int t = 0; t < this->tests; t++)
     {
         FMatrix vander = this->vandermonde();
-        GF_element det = global::F.one();
+        GF_element det = global::F->one();
 
         for (int i = 0; i < this->dim; i++)
             for (int j = i+1; j < this->dim; j++)
@@ -163,7 +161,7 @@ void FMatrix_test::test_det_singular()
         for (int col = 0; col < this->dim; col++)
             m.set(r1, col, m(r2, col));
 
-        if (m.det() != global::F.zero())
+        if (m.det() != global::F->zero())
             err++;
     }
     end_test(err);
@@ -186,7 +184,7 @@ void FMatrix_test::test_pdet()
 
         for (int i = 0; i < reps; i++)
         {
-            GF_element gamma = global::F.random();
+            GF_element gamma = global::F->random();
             FMatrix A = m.copy();
             A.mul_gamma(r1, r2, gamma);
             GF_element d = A.det();
@@ -245,7 +243,7 @@ void FMatrix_test::test_packed_gamma_mul()
     int err = 0;
     for (int t = 0; t < this->tests; t++)
     {
-        GF_element gamma = global::F.random();
+        GF_element gamma = global::F->random();
         int r1 = global::randgen() % this->dim;
         int r2 = global::randgen() % this->dim;
         while (r1 == r2)
@@ -266,6 +264,7 @@ void FMatrix_test::test_packed_gamma_mul()
 
 void FMatrix_test::test_packed_init()
 {
+
     cout << "packed matrix init: ";
     int err = 0;
     for (int t = 0; t < this->tests; t++)

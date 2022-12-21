@@ -16,8 +16,8 @@
 #include "geng_test.hh"
 
 util::rand64bit global::randgen;
-Extension global::E;
-GF2n global::F;
+GR4_n *global::E;
+GF2_n *global::F;
 bool global::output = false;
 
 using namespace std;
@@ -33,7 +33,7 @@ int main(int argc, char** argv)
         cout << "-u for util tests" << endl;
         cout << "-s for solver tests" << endl;
         cout << "-d $int dimension of matrix" << endl;
-        cout << "-n $int degree of modulo polynomial" << endl;
+        cout << "-n $int degree of modulo polynomial. 16 and 32 optimized" << endl;
         cout << "-t $int how many times random tests are done" << endl;
         cout << "-c run geng test. \"geng -q $n | directg -q | listg -aq \" has to be piped to this." << endl;
         cout << "-r $int for seed to pseudo random generator" << endl;
@@ -52,20 +52,14 @@ int main(int argc, char** argv)
     int opt;
     uint64_t seed = time(nullptr);
 
-#if GF2_bits == 0
-    int n = 10;
+    int n = 16;
     while ((opt = getopt(argc, argv, "cxsuegfmn:d:t:r:")) != -1)
-#else
-    while ((opt = getopt(argc, argv, "cxsuegfmd:t:r:")) != -1)
-#endif
     {
         switch (opt)
         {
-#if GF2_bits == 0
         case 'n':
             n = stoi(optarg);
             break;
-#endif
         case 'r':
             seed = stoll(optarg);
             break;
@@ -101,17 +95,39 @@ int main(int argc, char** argv)
 
     cout << "seed: " << seed << endl;
     global::randgen.init(seed);
-#if GF2_bits == 0
-    uint64_t mod = util::irred_poly(n);
-    global::F.init(n, mod);
-    global::E.init(n, mod);
-#else
-    global::F.init();
-    global::E.init();
-#endif
+
+    if (n > 32 || n < 3)
+    {
+        cout << "please 3 <= n <= 32" << endl;
+        return -1;
+    }
+
+
+    uint64_t mod;
+
+    switch (n)
+    {
+    case 16:
+        /* x^16 + x^5 + x^3 + x^2 +  1 */
+        mod = 0x1002D;
+        global::F = new GF2_16(16, mod);
+        global::E = new GR4_16(16, mod);
+        break;
+    case 32:
+        /* x^32 + x^7 + x^3 + x^2 + 1 */
+        mod = 0x10000008D;
+        global::F = new GF2_32(32, mod);
+        global::E = new GR4_32(32, mod);
+        break;
+    default:
+        mod = util::irred_poly(n);
+        global::F = new GF2_n(n, mod);
+        global::E = new GR4_n(n, mod);
+        break;
+    }
 
     if (et)
-        Extension_test e(tests);
+        GR_test e(tests);
     if (gft)
         GF_test f;
     if (fmt)

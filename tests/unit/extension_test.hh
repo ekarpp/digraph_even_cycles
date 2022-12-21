@@ -4,7 +4,7 @@
 
 #include "test.hh"
 
-class Extension_test : Test
+class GR_test : Test
 {
 private:
     int n;
@@ -19,11 +19,6 @@ private:
     void test_is_even();
     void test_kronecker_mul();
 
-#if GF2_bits == 16
-    void test_packed_intel_rem();
-    void test_packed_fast_mul();
-#endif
-
     void run()
     {
         test_add_inverse();
@@ -35,14 +30,10 @@ private:
         test_intel_rem();
         test_mont_rem();
         test_kronecker_mul();
-#if GF2_bits == 16
-        test_packed_intel_rem();
-        test_packed_fast_mul();
-#endif
     }
 
 public:
-    Extension_test(int tests);
+    GR_test(int tests);
 
 };
 

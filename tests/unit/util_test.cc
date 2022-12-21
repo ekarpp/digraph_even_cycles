@@ -28,8 +28,8 @@ void Util_test::test_interpolation()
     int err = 0;
     for (int t = 0; t < this->tests; t++)
     {
-        uint64_t g = global::F.rem(global::randgen());
-        uint64_t d = global::F.rem(global::randgen());
+        uint64_t g = global::F->rem(global::randgen());
+        uint64_t d = global::F->rem(global::randgen());
 
         vector<GF_element> gamma(n);
         vector<GF_element> delta(n);
@@ -37,10 +37,10 @@ void Util_test::test_interpolation()
         for (int i = 0; i < n; i++)
         {
             gamma[i] = GF_element(g);
-            g = global::F.rem(g + 1);
+            g = global::F->rem(g + 1);
 
             delta[i] = GF_element(d);
-            d = global::F.rem(d + 1);
+            d = global::F->rem(d + 1);
         }
 
         Polynomial p = util::poly_interpolation(gamma, delta);

@@ -238,7 +238,7 @@ public:
     }
 
     /* https://dl.acm.org/doi/10.1016/j.ipl.2010.04.011 */
-    GR_repr intel_rem(GR_repr a) const
+    virtual GR_repr intel_rem(GR_repr a) const
     {
         GR_repr hi = { a.hi >> this->n, a.lo >> this->n };
         GR_repr lo = { a.hi & this->mask, a.lo & this->mask };

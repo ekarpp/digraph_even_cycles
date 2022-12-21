@@ -22,9 +22,9 @@ private:
     }
 
     EMatrix random();
-    Extension_element term(std::valarray<int> &perm, const EMatrix &m);
+    GR_element term(std::valarray<int> &perm, const EMatrix &m);
     void swap(int i1, int i2, std::valarray<int> &perm);
-    Extension_element per_m_det_heap(const EMatrix &m);
+    GR_element per_m_det_heap(const EMatrix &m);
 
 public:
     EMatrix_test(int tests);
