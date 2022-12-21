@@ -56,8 +56,8 @@ int main(int argc, char **argv)
 {
     if (argc == 1)
     {
-        cout << "provide path to graph file with -f" << endl;
-        cout << "line i (starting at zero) in graph file" << endl;
+        cout << "provide path to graph file with -f (mandatory) ";
+        cout << "line i (starting at zero) in graph file ";
         cout << "tells to which nodes there is an edge to" << endl;
         cout << "-b to use the brute force solver instead (SLOW)" << endl;
         cout << "-q for no progress output from solver" << endl;
@@ -75,6 +75,7 @@ int main(int argc, char **argv)
     bool brute = false;
     bool duration = false;
     bool direct = false;
+    bool file_given = false;
     uint64_t seed = time(nullptr);
     int n = 16;
     int p = omp_get_num_threads();
@@ -84,6 +85,7 @@ int main(int argc, char **argv)
         switch (opt)
         {
         case 'f':
+            file_given = true;
             /* error during parsing */
             if (!parse_file(optarg, graph))
                 return -1;
@@ -113,6 +115,12 @@ int main(int argc, char **argv)
             cout << "call with no arguments for help" << endl;
             return -1;
         }
+    }
+
+    if (!file_given)
+    {
+        cout << "-f is mandatory!" << endl;
+        return -1;
     }
 
     if (n > 32 || n < 3)
