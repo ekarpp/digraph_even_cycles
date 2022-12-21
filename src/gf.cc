@@ -9,24 +9,24 @@
 using namespace std;
 
 /* GF */
-GF_element GF2n::zero() const
+GF_element GF2_n::zero() const
 {
     return GF_element(0);
 }
 
-GF_element GF2n::one() const
+GF_element GF2_n::one() const
 {
     return GF_element(1);
 }
 
 /* this can create zero, is it a problem? */
-GF_element GF2n::random() const
+GF_element GF2_n::random() const
 {
     return GF_element(global::randgen() & this->mask);
 }
 
 /* TODO: solve forward declaration issue and move to .hh */
-Extension_element GF_element::lift() const
+GR_element GF_element::lift() const
 {
-    return Extension_element(this->repr, 0b0);
+    return GR_element(this->repr, 0b0);
 }

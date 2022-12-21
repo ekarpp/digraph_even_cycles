@@ -10,7 +10,7 @@
 
 using namespace std;
 
-EMatrix::EMatrix(int n, valarray<Extension_element> matrix): m(n*n)
+EMatrix::EMatrix(int n, valarray<GR_element> matrix): m(n*n)
 {
     this->n = n;
     for (int i = 0; i < n; i++)
@@ -20,7 +20,7 @@ EMatrix::EMatrix(int n, valarray<Extension_element> matrix): m(n*n)
 
 EMatrix EMatrix::copy() const
 {
-    valarray<Extension_element> m(this->n * this->n);
+    valarray<GR_element> m(this->n * this->n);
 
     for (int row = 0; row < this->n; row++)
         for (int col = 0; col < this->n; col++)
@@ -44,9 +44,9 @@ FMatrix EMatrix::project() const
 
 /* returns Per(this) - Det(this) as described in chapter 3
  * of the paper*/
-Extension_element EMatrix::per_m_det()
+GR_element EMatrix::per_m_det()
 {
-    Extension_element acc = global::E.zero();
+    GR_element acc = global::E->zero();
 
     /* marked rows */
     valarray<bool> rows(false, this->n);
@@ -79,7 +79,7 @@ Extension_element EMatrix::per_m_det()
         }
     }
 
-    Extension_element det = global::E.zero();
+    GR_element det = global::E->zero();
     /* if more than two unmarked columns, det and per
      * of the final matrix is zero because in characteristic
      * 2 even*even = 0 */
@@ -102,7 +102,7 @@ Extension_element EMatrix::per_m_det()
          * and column */
         int swaps = 0;
         valarray<bool> swapped(false, this->n);
-        Extension_element per = global::E.one();
+        GR_element per = global::E->one();
         for (int col = 0; col < (int) odd.size(); col++)
         {
             int row = odd[col];
@@ -118,7 +118,7 @@ Extension_element EMatrix::per_m_det()
         /* can just skip this and not just add per to acc */
         if (swaps % 2 == 1)
             /* unary - ? */
-            det = global::E.zero() - per;
+            det = global::E->zero() - per;
         else
             det = per;
     }
@@ -128,18 +128,18 @@ Extension_element EMatrix::per_m_det()
 
 /* make all elements in row j even except for (i1,j)
  * return accumulator */
-Extension_element EMatrix::row_op(int i1, int j)
+GR_element EMatrix::row_op(int i1, int j)
 {
-    Extension_element acc = global::E.zero();
-    const Extension_element sigma = this->operator()(i1, j);
+    GR_element acc = global::E->zero();
+    const GR_element sigma = this->operator()(i1, j);
     for (int i2 = 0; i2 < this->n; i2++)
     {
         if (i2 == i1)
             continue;
         if (!this->operator()(i2, j).is_even())
         {
-            const Extension_element v = this->operator()(i2, j);
-            const Extension_element t = util::tau(sigma, v);
+            const GR_element v = this->operator()(i2, j);
+            const GR_element t = util::tau(sigma, v);
 
             /* M'' in the paper. Modify this as M' */
             EMatrix mpp = this->copy();
@@ -153,10 +153,10 @@ Extension_element EMatrix::row_op(int i1, int j)
             }
             /* project creates new copy here */
             const Polynomial p = mpp.project().pdet(i1, i2);
-            GF_element sum = global::F.zero();
+            GF_element sum = global::F->zero();
             for (int i = 0; i < this->n - 1; i++)
                 sum += p[i];
-            Extension_element per = sum.lift() + sum.lift();
+            GR_element per = sum.lift() + sum.lift();
             acc += per;
         }
     }

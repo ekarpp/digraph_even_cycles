@@ -34,6 +34,7 @@ struct uint576_t
 
 namespace bit
 {
+
     inline uint256_t add_256bit(uint256_t a, uint256_t b)
     {
         uint256_t sum;
@@ -45,6 +46,13 @@ namespace bit
     {
         uint512_t sum;
         ADD_WORDS(8);
+        return sum;
+    }
+
+    inline uint576_t add_576bit(uint576_t a, uint576_t b)
+    {
+        uint576_t sum;
+        ADD_WORDS(9);
         return sum;
     }
 
@@ -69,13 +77,6 @@ namespace bit
         wide.words[8] = 0;
 
         return wide;
-    }
-
-    inline uint576_t add_576bit(uint576_t a, uint576_t b)
-    {
-        uint576_t sum;
-        ADD_WORDS(9);
-        return sum;
     }
 
     /* pos <= 64 */

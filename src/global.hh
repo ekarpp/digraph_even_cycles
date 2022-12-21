@@ -4,8 +4,8 @@
 
 #include "xorshift.hh"
 
-class GF2n;
-class Extension;
+class GF2_n;
+class GR4_n;
 
 namespace util
 {
@@ -22,10 +22,10 @@ namespace util
 
 namespace global
 {
-    /* these are defined in main.cc */
+    /* these are defined in main.cc. no writing, just reading. */
     extern util::rand64bit randgen;
-    extern GF2n F;
-    extern Extension E;
+    extern GF2_n *F;
+    extern GR4_n *E;
     extern bool output;
 }
 

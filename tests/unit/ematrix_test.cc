@@ -23,18 +23,18 @@ EMatrix_test::EMatrix_test(int tests = 0)
 
 EMatrix EMatrix_test::random()
 {
-    valarray<Extension_element> m(this->dim * this->dim);
+    valarray<GR_element> m(this->dim * this->dim);
 
     for (int row = 0; row < this->dim; row++)
         for (int col = 0; col < this->dim; col++)
-            m[row*this->dim + col] = global::E.random();
+            m[row*this->dim + col] = global::E->random();
 
     return EMatrix(this->dim, m);
 }
 
-Extension_element EMatrix_test::term(valarray<int> &perm, const EMatrix &m)
+GR_element EMatrix_test::term(valarray<int> &perm, const EMatrix &m)
 {
-    Extension_element ret = global::E.one();
+    GR_element ret = global::E->one();
     for (int col = 0; col < this->dim; col++)
         ret *= m(perm[col], col);
     return ret;
@@ -47,10 +47,10 @@ void EMatrix_test::swap(int i1, int i2, valarray<int> &perm)
     perm[i2] = tmp;
 }
 
-Extension_element EMatrix_test::per_m_det_heap(const EMatrix &m)
+GR_element EMatrix_test::per_m_det_heap(const EMatrix &m)
 {
-    Extension_element per = global::E.zero();
-    Extension_element det = global::E.zero();
+    GR_element per = global::E->zero();
+    GR_element det = global::E->zero();
 
     /* iterative heaps algo for permutations. compute permanent
      * and determinant with the Leibniz formula */
@@ -58,7 +58,7 @@ Extension_element EMatrix_test::per_m_det_heap(const EMatrix &m)
     valarray<int> perm(0, this->dim);
     for (int i = 0; i < this->dim; i++)
         perm[i] = i;
-    Extension_element tt = this->term(perm, m);
+    GR_element tt = this->term(perm, m);
     per += tt;
     det += tt;
 
@@ -99,7 +99,7 @@ void EMatrix_test::test_per_det()
     for (int t = 0; t < this->tests; t++)
     {
         EMatrix m = this->random();
-        Extension_element pd = this->per_m_det_heap(m);
+        GR_element pd = this->per_m_det_heap(m);
         if (pd != m.per_m_det())
             err++;
     }
@@ -122,7 +122,7 @@ void EMatrix_test::test_per_det_singular()
         for (int col = 0; col < this->dim; col++)
             m.set(r1, col, m(r2, col));
 
-        Extension_element pd = this->per_m_det_heap(m);
+        GR_element pd = this->per_m_det_heap(m);
         if (pd != m.per_m_det())
             err++;
     }

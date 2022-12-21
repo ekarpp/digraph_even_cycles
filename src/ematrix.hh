@@ -14,11 +14,11 @@ class FMatrix;
 class EMatrix
 {
 private:
-    std::valarray<Extension_element> m;
+    std::valarray<GR_element> m;
     int n;
 
 public:
-    EMatrix(int n, std::valarray<Extension_element> matrix);
+    EMatrix(int n, std::valarray<GR_element> matrix);
 
     FMatrix project() const;
 
@@ -26,13 +26,13 @@ public:
 
     /* returns Per(this) - Det(this) as described in chapter 3
      * of the paper*/
-    Extension_element per_m_det();
+    GR_element per_m_det();
 
-    Extension_element row_op(int i1, int j);
+    GR_element row_op(int i1, int j);
 
     int get_n() const { return this->n; }
 
-    const Extension_element &operator()(int row, int col) const
+    const GR_element &operator()(int row, int col) const
     {
         return this->m[row*this->n + col];
     }
@@ -55,7 +55,7 @@ public:
         return !(*this == other);
     }
 
-    void set(int row, int col, Extension_element val)
+    void set(int row, int col, GR_element val)
     {
         this->m[row*this->n + col] = val;
     }
