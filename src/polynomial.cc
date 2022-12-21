@@ -7,7 +7,7 @@
 using namespace std;
 /* be lazy and just store coefficients in vector of length n.
  * dont care if some of the coefficients are zero */
-Polynomial::Polynomial(int n): coeffs(n+1, global::F.zero())
+Polynomial::Polynomial(int n): coeffs(n+1, global::F->zero())
 {
     this->deg = n;
 }
@@ -21,7 +21,7 @@ Polynomial::Polynomial(vector<GF_element> P): coeffs(P)
 void Polynomial::div(GF_element v)
 {
     GF_element prev = this->coeffs[this->deg];
-    this->coeffs[this->deg] = global::F.zero();
+    this->coeffs[this->deg] = global::F->zero();
 
     for (int i = this->deg - 1; i >= 0; i--)
     {

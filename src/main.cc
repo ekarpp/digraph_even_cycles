@@ -17,8 +17,8 @@
 using namespace std;
 
 util::rand64bit global::randgen;
-GF2n global::F;
-Extension global::E;
+GF2_n *global::F;
+GR4_n *global::E;
 bool global::output = true;
 
 bool parse_file(string fname, vector<vector<int>> &graph)
@@ -63,7 +63,8 @@ int main(int argc, char **argv)
         cout << "-q for no progress output from solver" << endl;
         cout << "-t to output time spent computing" << endl;
         cout << "-u if the input graph is undirected, directs it randomly" << endl;
-        cout << "-n finite field size. 16 and 32 optimized. has to be <= 32"
+        cout << "-n finite field size. 16 and 32 optimized. has to be <= 32";
+        cout << "-p for number of threads (defaults to all)" << endl;
         cout << "-s for seed" << endl;
         return 0;
     }
@@ -76,8 +77,9 @@ int main(int argc, char **argv)
     bool direct = false;
     uint64_t seed = time(nullptr);
     int n = 16;
+    int p = omp_get_num_threads();
 
-    while ((opt = getopt(argc, argv, "utqbf:s:n:")) != -1)
+    while ((opt = getopt(argc, argv, "utqbf:s:n:p:")) != -1)
     {
         switch (opt)
         {
@@ -104,6 +106,9 @@ int main(int argc, char **argv)
         case 'n':
             n = stoi(optarg);
             break;
+        case 'p':
+            p = stoi(optarg);
+            break;
         case '?':
             cout << "call with no arguments for help" << endl;
             return -1;
@@ -120,23 +125,27 @@ int main(int argc, char **argv)
     global::randgen.init(seed);
 
     uint64_t mod;
+
     switch (n)
     {
     case 16:
         /* x^16 + x^5 + x^3 + x^2 +  1 */
         mod = 0x1002D;
+        global::F = new GF2_16(mod, 16);
+        global::E = new GR4_16(mod, 16);
         break;
     case 32:
         /* x^32 + x^7 + x^3 + x^2 + 1 */
         mod = 0x10000008D;
+        global::F = new GF2_32(mod, 32);
+        global::E = new GR4_32(mod, 32);
         break;
     default:
         mod = util::irred_poly(n);
+        global::F = new GF2_n(mod, n);
+        global::E = new GR4_n(mod, n);
         break;
     }
-
-    global::F = GF2n(n, mod);
-    global::E = Extension(n, mod);
 
     if (direct)
         util::direct_undirected(graph);
@@ -147,16 +156,20 @@ int main(int argc, char **argv)
     double start;
     double end;
 
+    int k;
+
+    omp_set_num_threads(p);
+
     if (brute)
     {
         start = omp_get_wtime();
-        int k = s.shortest_even_cycle_brute(G);
+        k = s.shortest_even_cycle_brute(G);
         end = omp_get_wtime();
     }
     else
     {
         start = omp_get_wtime();
-        int k = s.shortest_even_cycle(G);
+        k = s.shortest_even_cycle(G);
         end = omp_get_wtime();
     }
 
@@ -167,6 +180,9 @@ int main(int argc, char **argv)
         cout << "computed graph of " << G.get_n() << " vertices in ";
         cout << delta << " seconds." << endl;
     }
+
+    delete global::F;
+    delete global::E;
 
     return 0;
 }

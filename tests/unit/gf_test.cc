@@ -99,41 +99,6 @@ void GF_test::test_lift_project()
 }
 
 #if GF2_bits == 16
-void GF_test::test_packed_rem()
-{
-    cout << "packed rem: ";
-    int err = 0;
-    uint64_t mask = global::F.get_mask() |
-        (global::F.get_mask() << 32);
-    for (int i = 0; i < this->tests; i++)
-    {
-        uint64_t a = global::randgen() & mask;
-        uint64_t b = global::randgen() & mask;
-
-        uint64_t ref = global::F.rem(
-            global::F.clmul(
-                (a >> 32) & global::F.get_mask(),
-                (b >> 32) & global::F.get_mask()
-            )
-        );
-        ref <<= 32;
-
-        ref |= global::F.rem(
-            global::F.clmul(
-                a & global::F.get_mask(),
-                b & global::F.get_mask()
-            )
-        );
-
-        uint64_t r = global::F.packed_rem(
-            global::F.packed_clmul(a, b)
-        );
-
-        if (ref != r)
-            err++;
-    }
-    this->end_test(err);
-}
 
 void GF_test::test_wide_mul()
 {

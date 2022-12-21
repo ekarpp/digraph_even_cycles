@@ -6,10 +6,7 @@
 #include "fmatrix.hh"
 #include "ematrix.hh"
 #include "extension.hh"
-
-#if GF2_bits == 16
 #include "packed_fmatrix.hh"
-#endif
 
 using namespace std;
 
@@ -23,7 +20,7 @@ FMatrix::FMatrix(int n, valarray<GF_element> matrix): m(n*n)
 
 EMatrix FMatrix::lift() const
 {
-    valarray<Extension_element> lifted(this->n * this->n);
+    valarray<GR_element> lifted(this->n * this->n);
 
     for (int x = 0; x < this->n; x++)
     {
@@ -57,15 +54,15 @@ FMatrix FMatrix::mul_diag(const GF_element &e) const
  * not affect the determinant. */
 GF_element FMatrix::det()
 {
-    GF_element det = global::F.one();
+    GF_element det = global::F->one();
     for (int col = 0; col < this->n; col++)
     {
         /* pivot */
-        GF_element mx = global::F.zero();
+        GF_element mx = global::F->zero();
         int mxi = -1;
         for (int row = col; row < this->n; row++)
         {
-            if (this->operator()(row,col) != global::F.zero())
+            if (this->operator()(row,col) != global::F->zero())
             {
                 mx = this->operator()(row,col);
                 mxi = row;
@@ -73,8 +70,8 @@ GF_element FMatrix::det()
             }
         }
 
-        if (mx == global::F.zero())
-            return global::F.zero();
+        if (mx == global::F->zero())
+            return global::F->zero();
 
         if (mxi != col)
             this->swap_rows(mxi, col);
@@ -98,15 +95,18 @@ Polynomial FMatrix::pdet(int r1, int r2) const
 
     for (int i = 0; i < 2*this->n - 1; i++)
     {
-#if GF2_bits == 16 && !defined NOVEC
-        Packed_FMatrix PA(*this);
-        PA.mul_gamma(r1, r2, gamma[i]);
-        delta[i] = PA.det();
-#else
-        FMatrix A = this->copy();
-        A.mul_gamma(r1, r2, gamma[i]);
-        delta[i] = A.det();
-#endif
+        if (global::F->get_n() == 16)
+        {
+            Packed_FMatrix PA(*this);
+            PA.mul_gamma(r1, r2, gamma[i]);
+            delta[i] = PA.det();
+        }
+        else
+        {
+            FMatrix A = this->copy();
+            A.mul_gamma(r1, r2, gamma[i]);
+            delta[i] = A.det();
+        }
     }
 
     /* la grange */
@@ -127,6 +127,6 @@ FMatrix FMatrix::copy() const
 GF_element FMatrix::pcc(const GF_element &e) const
 {
     EMatrix E = this->mul_diag(e).lift();
-    Extension_element elem = E.per_m_det();
+    GR_element elem = E.per_m_det();
     return elem.div2().project();
 }

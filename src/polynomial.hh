@@ -74,7 +74,7 @@ namespace util
         Polynomial interp(n - 1);
 
         /* weights*/
-        std::vector<GF_element> w(n, global::F.one());
+        std::vector<GF_element> w(n, global::F->one());
         for (int j = 1; j < n; j++)
         {
             for (int k = 0; k < j; k++)
@@ -88,8 +88,8 @@ namespace util
             w[j].inv_in_place();
 
         /* main polynomial [ prod_{i} (x + gamma_i) ]*/
-        std::vector<GF_element> P(n+1, global::F.zero());
-        P[n] = global::F.one();
+        std::vector<GF_element> P(n+1, global::F->zero());
+        P[n] = global::F->one();
         P[n-1] = gamma[0];
         for (int i = 1; i < n; i++)
         {

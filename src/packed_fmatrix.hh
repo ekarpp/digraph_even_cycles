@@ -117,10 +117,10 @@ private:
         if (mxi != r0)
             this->swap_rows(mxi, r0);
         /* vectorize? */
-        det = global::F.rem(
-            global::F.clmul(det, mx_ext)
+        det = global::F->rem(
+            global::F->clmul(det, mx_ext)
         );
-        mx_ext = global::F.ext_euclid(mx_ext);
+        mx_ext = global::F->ext_euclid(mx_ext);
         this->mul_row(r0, mx_ext);
         /* vectorize end? */
         char mask = VECTOR_N - 1 - index;
@@ -246,18 +246,18 @@ public:
         /* do gamma multiplication during initialization?? */
         long4_t pac_gamma = _mm256_set1_epi32(gamma.get_repr());
         // pac_gamma = [gamma^VECTOR_N]
-        pac_gamma = global::F.wide_mul(pac_gamma, pac_gamma);
-        pac_gamma = global::F.wide_mul(pac_gamma, pac_gamma);
-        pac_gamma = global::F.wide_mul(pac_gamma, pac_gamma);
+        pac_gamma = global::F->wide_mul(pac_gamma, pac_gamma);
+        pac_gamma = global::F->wide_mul(pac_gamma, pac_gamma);
+        pac_gamma = global::F->wide_mul(pac_gamma, pac_gamma);
 
         uint64_t elems[4];
         uint64_t g = 1ull;
         for (int i = 0; i < 4; i++)
         {
             elems[i] = g << 32;
-            g = global::F.rem(global::F.clmul(g, gamma.get_repr()));
+            g = global::F->rem(global::F->clmul(g, gamma.get_repr()));
             elems[i] |= g;
-            g = global::F.rem(global::F.clmul(g, gamma.get_repr()));
+            g = global::F->rem(global::F->clmul(g, gamma.get_repr()));
         }
         long4_t prod = _mm256_set_epi64x(
             elems[0],
@@ -286,10 +286,10 @@ public:
                 idx
             );
             long4_t elem = this->get(r1, col);
-            elem = global::F.wide_mul(elem, prod);
+            elem = global::F->wide_mul(elem, prod);
             this->set(r1, col, elem);
 
-            prod = global::F.wide_mul(prod, pac_gamma);
+            prod = global::F->wide_mul(prod, pac_gamma);
         }
 
         /* handle special permutations required in case not divisible by 4 */
@@ -325,7 +325,7 @@ public:
         for (int col = 0; col < this->cols; col++)
         {
             this->set(r2, col,
-                      global::F.wide_mul(
+                      global::F->wide_mul(
                           this->get(r2, col),
                           coeffs[col]
                       )
@@ -349,7 +349,7 @@ public:
         long4_t pack = _mm256_set1_epi32(v);
         for (int col = 0; col < this->cols; col++)
             this->set(row, col,
-                      global::F.wide_mul(this->get(row, col), pack)
+                      global::F->wide_mul(this->get(row, col), pack)
                 );
     }
 
@@ -358,7 +358,7 @@ public:
     {
         for (int col = 0; col < this->cols; col++)
         {
-            long4_t tmp = global::F.wide_mul(this->get(r1, col), pack);
+            long4_t tmp = global::F->wide_mul(this->get(r1, col), pack);
 
             this->set(r2, col,
                       _mm256_xor_si256(this->get(r2, col), tmp)

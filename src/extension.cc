@@ -8,26 +8,26 @@
 using namespace std;
 
 /* Extension */
-Extension_element Extension::zero() const
+GR_element GR4_n::zero() const
 {
-    return Extension_element(0b0, 0b0);
+    return GR_element(0b0, 0b0);
 }
 
-Extension_element Extension::one() const
+GR_element GR4_n::one() const
 {
-    return Extension_element(0b1, 0b0);
+    return GR_element(0b1, 0b0);
 }
 
-Extension_element Extension::random() const
+GR_element GR4_n::random() const
 {
-    return Extension_element(
+    return GR_element(
         global::randgen() & this->mask,
         global::randgen() & this->mask
     );
 }
 
 /* Extension element */
-GF_element Extension_element::project() const
+GF_element GR_element::project() const
 {
     return GF_element(this->repr.lo);
 }
