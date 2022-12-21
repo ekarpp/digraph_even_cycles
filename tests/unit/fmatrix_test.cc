@@ -195,7 +195,6 @@ void FMatrix_test::test_pdet()
     end_test(err);
 }
 
-#if GF2_bits == 16
 void FMatrix_test::test_packed_determinant()
 {
     cout << "determinant on packed matrices: ";
@@ -277,4 +276,3 @@ void FMatrix_test::test_packed_init()
     }
     end_test(err);
 }
-#endif

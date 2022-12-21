@@ -8,61 +8,42 @@ VPATH = src:tests/unit:tests/perf
 
 BIN := digraph digraph-tests extension-perf gf-perf mem-bench
 
-OBJ := graph util gf extension fmatrix ematrix polynomial solver
-OBJ := $(addsuffix $(bits).o, $(OBJ))
+BASE_OBJ := gf.o extension.o fmatrix.o ematrix.o polynomial.o util.o solver.o graph.o
+TEST_OBJ := gf_test.o extension_test.o fmatrix_test.o util_test.o solver_test.o ematrix_test.o geng_test.o
+PERF_OBJ := extension.o polynomial.o gf.o util.o
 
-PERF_OBJ := extension polynomial gf util
-PERF_OBJ := $(addsuffix $(bits).o, $(PERF_OBJ))
 
-TEST_OBJ := gf_test extension_test fmatrix_test util_test solver_test ematrix_test geng_test
-TEST_OBJ := $(addsuffix $(bits).o, $(TEST_OBJ))
+###########
+# RECIPES #
+###########
 
-ALL_OBJ := $(OBJ) $(PERF_OBJ) $(TEST_OBJ) solver$(bits)PAR.o extension_perf$(bits)PAR.o extension_perf$(bits).o main$(bits).o gf_perf$(bits).o tests$(bits).o
+.PHONY: clean all help
+clean:
+	rm -f *.o *.s *.asm1 *.asm2 $(BIN)
+	cd nauty && git clean -xf && git checkout .
 
 all: $(BIN) nauty/geng nauty/directg nauty/listg
 
-CLEAN_REGEX := {0,16,32}?(-NOVEC)?(-PAR)
-
-.PHONY: clean clean-bin clean-obj help
-clean-obj:
-	rm -f *.o
-clean-bin:
-	rm -f $(addsuffix $(CLEAN_REGEX), $(BIN)) mem-bench
-clean: clean-obj clean-bin
-	rm -f *.o *.s *.asm1 *.asm2
-	cd nauty && git clean -xf && git checkout .
-
-objectsX: $(ALL_OBJ)
-
-objects:
-	$(MAKE) objectsX bits=32
-	$(MAKE) objectsX bits=16
-	$(MAKE) objectsX bits=0
-
 help:
-	@echo 'in all commands $${b} refers to the exponent of underlying finite field.'
-	@echo 'values available b=0,16,32. list of available commands:'
+	@echo 'list of available commands:'
 	@echo ''
-	@echo '  solvers:'
-	@echo '    make digraph$${b}'
-	@echo ''
-	@echo '  GF(2^16) solver without AVX:'
-	@echo '    make digraph16-NOVEC'
+	@echo '  solver:'
+	@echo '    make digraph'
 	@echo ''
 	@echo '  unit testing:'
-	@echo '    make digraph-test$${b}'
+	@echo '    make digraph-test'
 	@echo ''
 	@echo '  runs predefined tests:'
-	@echo '    make test$${b}'
+	@echo '    make test'
 	@echo ''
-	@echo '  tests $${b} solver on all digraphs of $${V} vertices (up to isomorphism):'
-	@echo '    BITS=$${b} vert=$${V} make geng-test'
+	@echo '  tests GF(2^$${b}) solver on all digraphs of $${V} vertices (up to isomorphism):'
+	@echo '    EXP=$${b} VERT=$${V} make geng-test'
 	@echo ''
 	@echo '  GF performance benchamrking:'
-	@echo '    make gf-perf$${b}'
+	@echo '    make gf-perf'
 	@echo ''
 	@echo '  extension performance benchmarking:'
-	@echo '    make extension-perf$${b}'
+	@echo '    make extension-perf'
 	@echo ''
 	@echo '  memory bandwidth benchmarking:'
 	@echo '    make mem-bench'
@@ -72,95 +53,33 @@ help:
 	@echo ''
 
 
-###################
-# SOLVER BINARIES #
-###################
+##########
+# SOLVER #
+##########
 
-digraph32:
-	$(MAKE) digraphX bits=32
-
-digraph16:
-	$(MAKE) digraphX bits=16
-	$(MAKE) digraph16-NOVEC bits=16
-
-digraph16-NOVEC: main16.o $(OBJ) fmatrix16NOVEC.o solver16PAR.o
-	$(CXX) main16.o $(subst fmatrix16.o, fmatrix16NOVEC.o, $(OBJ)) -o $@ $(LDFLAGS)
-	$(CXX) main16.o $(subst solver16.o, solver16PAR.o, $(subst fmatrix16.o, fmatrix16NOVEC.o, $(OBJ))) -o $@-PAR $(LDFLAGS)
-
-digraph0:
-	$(MAKE) digraphX bits=0
-
-digraphX: main$(bits).o $(OBJ) solver$(bits)PAR.o
-	$(CXX) main$(bits).o $(OBJ) -o $@ $(LDFLAGS)
-	mv $@ digraph$(bits)
-
-	$(CXX) main$(bits).o $(subst solver$(bits).o, solver$(bits)PAR.o, $(OBJ)) -o $@ $(LDFLAGS)
-	mv $@ digraph$(bits)-PAR
-
-digraph: digraph32 digraph16 digraph0
-
-
-#################
-# TEST BINARIES #
-#################
-
-digraph-tests32:
-	$(MAKE) digraph-testsX bits=32
-
-digraph-tests16:
-	$(MAKE) digraph-testsX bits=16
-
-digraph-tests0:
-	$(MAKE) digraph-testsX bits=0
-
-digraph-testsX: tests$(bits).o $(OBJ) $(TEST_OBJ)
+digraph: main.o $(BASE_OBJ)
 	$(CXX) $^ -o $@ $(LDFLAGS)
-	mv $@ digraph-tests$(bits)
 
-digraph-tests: digraph-tests32 digraph-tests16 digraph-tests0
+#########
+# TESTS #
+#########
 
-
-####################
-# GF PERF BINARIES #
-####################
-
-gf-perf32:
-	$(MAKE) gf-perfX bits=32
-
-gf-perf16:
-	$(MAKE) gf-perfX bits=16
-
-gf-perf0:
-	$(MAKE) gf-perfX bits=0
-
-gf-perfX: gf_perf$(bits).o $(PERF_OBJ)
+digraph-tests: tests.o $(TEST_OBJ) $(BASE_OBJ)
 	$(CXX) $^ -o $@ $(LDFLAGS)
-	mv $@ gf-perf$(bits)
 
-gf-perf: gf-perf32 gf-perf16 gf-perf0
+###########
+# GF PERF #
+###########
 
+gf-perf: gf_perf.o $(PERF_OBJ)
+	$(CXX) $^ -o $@ $(LDFLAGS)
 
-#####################
-# EXT PERF BINARIES #
-#####################
+############
+# EXT PERF #
+############
 
-extension-perf32:
-	$(MAKE) extension-perfX bits=32
-
-extension-perf16:
-	$(MAKE) extension-perfX bits=16
-
-extension-perf0:
-	$(MAKE) extension-perfX bits=0
-
-extension-perfX: extension_perf$(bits).o $(PERF_OBJ) extension_perf$(bits)PAR.o
-	$(CXX) extension_perf$(bits).o $(PERF_OBJ) -o $@ $(LDFLAGS)
-	mv $@ extension-perf$(bits)
-
-	$(CXX) extension_perf$(bits)PAR.o $(PERF_OBJ) -o $@ $(LDFLAGS)
-	mv $@ extension-perf$(bits)-PAR
-
-extension-perf: extension-perf32 extension-perf16 extension-perf0
+extension-perf: extension_perf.o $(PERF_OBJ)
+	$(CXX) $^ -o $@ $(LDFLAGS)
 
 #############
 # MEM BENCH #
@@ -187,23 +106,23 @@ nauty/directg:
 # TEST COMMANDS #
 #################
 
-test32: digraph-tests32
-	./digraph-tests32 -efux -d20 -t10000
-	./digraph-tests32 -s -d10 -t100
+test32: digraph-tests
+	./digraph-tests -n32 -efux -d20 -t10000
+	./digraph-tests -n32 -s -d10 -t100
 
-test16: digraph-tests16
-	./digraph-tests16 -egfux -d20 -t10000
-	./digraph-tests16 -s -d10 -t100
+test16: digraph-tests
+	./digraph-tests -n16 -egfux -d20 -t10000
+	./digraph-tests -n16 -s -d10 -t100
 
-test0: digraph-tests0
-	./digraph-tests0 -egfux -d20 -n20 -t10000
-	./digraph-tests0 -s -d10 -n20 -t100
+test24: digraph-tests
+	./digraph-tests -n24 -egfux -d20 -n20 -t10000
+	./digraph-tests -n24 -s -d10 -n20 -t100
 
-test: test32 test16 test0
+test: test16 test24 test32
 
-geng-test: digraph-tests$(BITS) nauty/geng nauty/directg nauty/listg
-	mkdir -p geng-fail/$(vert)
-	nauty/geng -q $(vert) | nauty/directg -q | nauty/listg -aq | ./digraph-tests$(BITS) -c
+geng-test: digraph-tests nauty/geng nauty/directg nauty/listg
+	mkdir -p geng-fail/$(VERT)
+	nauty/geng -q $(VERT) | nauty/directg -q | nauty/listg -aq | ./digraph-tests -n $(EXP) -c
 
 
 #############
@@ -211,36 +130,18 @@ geng-test: digraph-tests$(BITS) nauty/geng nauty/directg nauty/listg
 #############
 
 %.s: %.cc
-	$(CXX) -D GF2_bits=16 -S $(CXXFLAGS) -fverbose-asm $^
+	$(CXX) -S $(CXXFLAGS) -fverbose-asm $^
 
 %.asm1: %.s
 	c++filt < $^ > $@
 
-%.asm2: %16.o
+%.asm2: %.o
 	objdump -d -S $^ > $@
 
 
-##################
-# OBJECT RECIPES #
-##################
+#################
+# OBJECT RECIPE #
+#################
 
-%32.o: %.cc
-	$(CXX) $(CXXFLAGS) -D GF2_bits=32 -c -o $@ $^
-
-%16.o: %.cc
-	$(CXX) $(CXXFLAGS) -D GF2_bits=16 -c -o $@ $^
-
-%0.o: %.cc
-	$(CXX) $(CXXFLAGS) -D GF2_bits=0 -c -o $@ $^
-
-%32PAR.o: %.cc
-	$(CXX) $(CXXFLAGS) -D GF2_bits=32 -D PARALLEL=1 -c -o $@ $^
-
-%16PAR.o: %.cc
-	$(CXX) $(CXXFLAGS) -D GF2_bits=16 -D PARALLEL=1 -c -o $@ $^
-
-%16NOVEC.o: %.cc
-	$(CXX) $(CXXFLAGS) -D GF2_bits=16 -D NOVEC=1 -c -o $@ $^
-
-%0PAR.o: %.cc
-	$(CXX) $(CXXFLAGS) -D GF2_bits=0 -D PARALLEL=1 -c -o $@ $^
+%.o: %.cc
+	$(CXX) $(CXXFLAGS) -c -o $@ $^
