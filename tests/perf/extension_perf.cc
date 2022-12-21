@@ -9,55 +9,10 @@
 #include "../../src/extension.hh"
 #include "../../src/gf.hh"
 
-constexpr int WARMUP = 1 << 20;
+constexpr uint64_t WARMUP = 1 << 15;
 
-#define BENCH_MUL(mul_func, last)                           \
-{                                                           \
-    GR_repr w = {0, 0};                              \
-        _Pragma("omp parallel for")                         \
-            for (uint64_t i = 0; i < WARMUP; i++)           \
-                w = global::E->add(w, mul_func(a[i], b[i])); \
-    start = omp_get_wtime();                                \
-        _Pragma("omp parallel for")                         \
-        for (uint64_t i = 0; i < t; i++)                    \
-            a[i] = mul_func(a[i], b[i]);                    \
-    end = omp_get_wtime();                                  \
-    if (exp == 0x6fabc73829101) {                           \
-        cout << a[exp].hi << a[exp].lo << endl;             \
-        cout << w.hi << w.lo << endl;                       \
-    }                                                       \
-    for (uint64_t i = 0; i < t; i++) {                      \
-        if (last)                                           \
-            a[i] = aa[i];                                   \
-        else                                                \
-            aa[i] = a[i];                                   \
-    }                                                       \
-    delta = (end - start);                                  \
-    mhz = t / delta;                                        \
-    mhz /= 1e6;                                             \
-}
-
-#define BENCH_REM(rem_func)                                 \
-{                                                           \
-    GR_repr w = {0, 0};                              \
-        _Pragma("omp parallel for")                         \
-        for (uint64_t i = 0; i < WARMUP; i++)               \
-            w = global::E->add(w, rem_func(a[i]));           \
-    start = omp_get_wtime();                                \
-        _Pragma("omp parallel for")                         \
-            for (uint64_t i = 0; i < t; i++)                \
-                a[i] = rem_func(a[i]);                      \
-    end = omp_get_wtime();                                  \
-    if (exp == 0x6fabc73829101) {                           \
-        cout << a[exp].hi << a[exp].lo << endl;             \
-        cout << w.hi << w.lo << endl;                       \
-    }                                                       \
-    for (uint64_t i = 0; i < t; i++)                        \
-        a[i] = aa[i];                                       \
-    delta = (end - start);                                  \
-    mhz = t / delta;                                        \
-    mhz /= 1e6;                                             \
-}
+enum Mul_enum { REF_MUL, FAST_MUL, KRONECKER_MUL };
+enum Rem_enum { EUCLID_REM, INTEL_REM, MONT_REM };
 
 using namespace std;
 
@@ -65,6 +20,99 @@ util::rand64bit global::randgen;
 GR4_n *global::E;
 GF2_n *global::F;
 bool global::output = false;
+
+template <Mul_enum M>
+double bench_mul(
+    vector<GR_repr> a,
+    vector<GR_repr> b,
+    vector<GR_repr> aa,
+    bool last,
+    uint64_t t)
+{
+    GR_repr w = {0, 0};
+    uint64_t wup = (WARMUP > t) ? t : WARMUP;
+    #pragma omp parallel for
+    for (uint64_t i = 0; i < wup; i++)
+        w = global::E->add(w, global::E->mul(a[i], b[i]));
+
+    double start = omp_get_wtime();
+    #pragma omp parallel for
+    for (uint64_t i = 0; i < t; i++)
+    {
+        switch (M)
+        {
+        case REF_MUL:
+            a[i] = global::E->ref_mul(a[i], b[i]);
+            break;
+        case FAST_MUL:
+            a[i] = global::E->fast_mul(a[i], b[i]);
+            break;
+        case KRONECKER_MUL:
+            a[i] = global::E->kronecker_mul(a[i], b[i]);
+            break;
+        }
+    }
+    double end = omp_get_wtime();
+
+    if (start > end)
+    {
+        cout << a[time(nullptr) % t].hi << a[time(nullptr) % t].lo << endl;
+        cout << w.hi << w.lo << endl;
+    }
+
+    for (uint64_t i = 0; i < t; i++) {
+        if (last)
+            aa[i] = a[i];
+        else
+            a[i] = aa[i];
+    }
+
+    return end - start;
+}
+
+template <Rem_enum R>
+double bench_rem(
+    vector<GR_repr> a,
+    vector<GR_repr> aa,
+    uint64_t t)
+{
+    GR_repr w = {0, 0};
+
+    uint64_t wup = (WARMUP > t) ? t : WARMUP;
+    #pragma omp parallel for
+    for (uint64_t i = 0; i < wup; i++)
+        w = global::E->add(w, global::E->rem(a[i]));
+
+    double start = omp_get_wtime();
+    #pragma omp parallel for
+    for (uint64_t i = 0; i < t; i++)
+    {
+        switch (R)
+        {
+        case EUCLID_REM:
+            a[i] = global::E->euclid_rem(a[i]);
+            break;
+        case INTEL_REM:
+            a[i] = global::E->intel_rem(a[i]);
+            break;
+        case MONT_REM:
+            a[i] = global::E->mont_rem(a[i]);
+            break;
+        }
+    }
+    double end = omp_get_wtime();
+
+    if (start > end)
+    {
+        cout << a[time(nullptr) % t].hi << a[time(nullptr) % t].lo << endl;
+        cout << w.hi << w.lo << endl;
+    }
+
+    for (uint64_t i = 0; i < t; i++)
+        a[i] = aa[i];
+
+    return end - start;
+}
 
 int main(int argc, char **argv)
 {
@@ -103,6 +151,7 @@ int main(int argc, char **argv)
 
     cout << "seed: " << seed << endl;
     global::randgen.init(seed);
+
     omp_set_num_threads(p);
 
     uint64_t mod;
@@ -126,7 +175,6 @@ int main(int argc, char **argv)
         global::E = new GR4_n(n, mod);
         break;
     }
-
     vector<GR_repr> a(t);
     vector<GR_repr> b(t);
     vector<GR_repr> aa(t);
@@ -136,24 +184,25 @@ int main(int argc, char **argv)
 
     start = omp_get_wtime();
 
-    /* use as many random bits as possible to make init faster */
-    const uint64_t REPEATS = (2*global::E->get_n()) / 64;
+    /* use more random bits to make init faster */
+    const uint64_t REPEATS = (global::E->get_n() > 16) ? 1 : 2;
+    const uint64_t BITS = (global::E->get_n() > 16) ? 32 : 16;
     for (uint64_t i = 0; i < t; i += REPEATS)
     {
         uint64_t ar = global::randgen();
         uint64_t br = global::randgen();
         for (uint64_t j = 0; j < REPEATS; j++)
         {
-            uint64_t alo = ar >> (2 * global::E->get_n() * j);
-            uint64_t ahi = ar >> (global::E->get_n() * (2 * j + 1));
+            uint64_t alo = ar >> (2 * BITS * j);
+            uint64_t ahi = ar >> (BITS * (2 * j + 1));
             a[i+j] = {
                 ahi & global::E->get_mask(),
                 alo & global::E->get_mask()
             };
             aa[i+j] = a[i+j];
 
-            uint64_t blo = br >> (2 * global::E->get_n() * j);
-            uint64_t bhi = br >> (global::E->get_n() * (2 * j + 1));
+            uint64_t blo = br >> (2 * BITS * j);
+            uint64_t bhi = br >> (BITS * (2 * j + 1));
             b[i+j] = {
                 bhi & global::E->get_mask(),
                 blo & global::E->get_mask()
@@ -166,39 +215,51 @@ int main(int argc, char **argv)
     double delta;
     double mhz;
 
-    BENCH_MUL(global::E->ref_mul, 1);
+    delta = bench_mul<REF_MUL>(a, b, aa, 0, t);
+    mhz = t / delta;
+    mhz /= 1e6;
 
     cout << t << " ref multiplications in time: " <<
         delta << " s or " << mhz << " Mhz" << endl;
 
-    BENCH_MUL(global::E->fast_mul, 1);
+    delta = bench_mul<FAST_MUL>(a, b, aa, 0, t);
+    mhz = t / delta;
+    mhz /= 1e6;
 
     cout << t << " fast multiplications in time: " <<
         delta << " s or " << mhz << " Mhz" << endl;
 
-    BENCH_MUL(global::E->kronecker_mul, 0);
+    delta = bench_mul<KRONECKER_MUL>(a, b, aa, 1, t);
+    mhz = t / delta;
+    mhz /= 1e6;
 
     cout << t << " kronecker multiplications in time: " <<
         delta << " s or " << mhz << " Mhz" << endl;
 
-    cout << endl << endl;
+    cout << endl;
 
-    BENCH_REM(global::E->euclid_rem);
+    delta = bench_rem<EUCLID_REM>(a, aa, t);
+    mhz = t / delta;
+    mhz /= 1e6;
 
     cout << t << " euclid remainders in time: " <<
         delta << " s or " << mhz << " Mhz" << endl;
 
-    BENCH_REM(global::E->mont_rem);
+    delta = bench_rem<MONT_REM>(a, aa, t);
+    mhz = t / delta;
+    mhz /= 1e6;
 
     cout << t << " mont remainders in time: " <<
         delta << " s or " << mhz << " Mhz" << endl;
 
-    BENCH_REM(global::E->intel_rem);
+    delta = bench_rem<INTEL_REM>(a, aa, t);
+    mhz = t / delta;
+    mhz /= 1e6;
 
     cout << t << " intel remainders in time " <<
         delta << " s or " << mhz << " Mhz" << endl;
 
-    cout << endl << endl;
+    cout << endl;
 
     return 0;
 }
