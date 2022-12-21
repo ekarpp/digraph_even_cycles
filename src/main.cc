@@ -63,7 +63,7 @@ int main(int argc, char **argv)
         cout << "-q for no progress output from solver" << endl;
         cout << "-t to output time spent computing" << endl;
         cout << "-u if the input graph is undirected, directs it randomly" << endl;
-        cout << "-n finite field size. 16 and 32 optimized. has to be <= 32";
+        cout << "-n finite field size. 16 and 32 optimized. has to be <= 32" << endl;
         cout << "-p for number of threads (defaults to all)" << endl;
         cout << "-s for seed" << endl;
         return 0;
