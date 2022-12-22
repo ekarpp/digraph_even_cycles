@@ -8,11 +8,10 @@
 perf.data*
 
 # binaries
-digraph*
-digraph-tests*
-digraph-scale*
-extension-perf*
-gf-perf*
+digraph
+digraph-tests
+extension-perf
+gf-perf
 mem-bench
 
 # geng failure graphs, can be big
