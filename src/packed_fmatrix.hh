@@ -110,7 +110,7 @@ private:
             return true;
         }
         if (piv_idx != r0)
-            this->swap_rows(piv_idx, r0);
+            this->swap_rows(piv_idx, r0, col);
 
         constexpr char mask = VECTOR_N - 1 - index;
         /* rows got swapped */
@@ -138,13 +138,13 @@ private:
         return false;
     }
 
-    inline void swap_rows(const int r1, const int r2)
+    inline void swap_rows(const int r1, const int r2, const int col0)
     {
-        for (int c = 0; c < this->cols; c++)
+        for (int col = col0; col < this->cols; col++)
         {
-            const long4_t tmp = this->get(r1, c);
-            this->set(r1, c, this->get(r2, c));
-            this->set(r2, c, tmp);
+            const long4_t tmp = this->get(r1, col);
+            this->set(r1, col, this->get(r2, col));
+            this->set(r2, col, tmp);
         }
     }
 
