@@ -27,14 +27,14 @@ EMatrix EMatrix_test::random()
 
     for (int row = 0; row < this->dim; row++)
         for (int col = 0; col < this->dim; col++)
-            m[row*this->dim + col] = global::E->random();
+            m[row*this->dim + col] = util::GR_random();
 
     return EMatrix(this->dim, m);
 }
 
 GR_element EMatrix_test::term(valarray<int> &perm, const EMatrix &m)
 {
-    GR_element ret = global::E->one();
+    GR_element ret = util::GR_one();
     for (int col = 0; col < this->dim; col++)
         ret *= m(perm[col], col);
     return ret;
@@ -49,8 +49,8 @@ void EMatrix_test::swap(int i1, int i2, valarray<int> &perm)
 
 GR_element EMatrix_test::per_m_det_heap(const EMatrix &m)
 {
-    GR_element per = global::E->zero();
-    GR_element det = global::E->zero();
+    GR_element per = util::GR_zero();
+    GR_element det = util::GR_zero();
 
     /* iterative heaps algo for permutations. compute permanent
      * and determinant with the Leibniz formula */
