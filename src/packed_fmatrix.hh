@@ -22,6 +22,7 @@ private:
     // original matrix n moduloe VECTOR_N
     int nmod;
     std::vector<long4_t> m;
+    std::vector<long4_t> coeffs;
 
     const long4_t &get(const int row, const int col) const
     {
@@ -34,7 +35,7 @@ private:
     }
 
     template <int index>
-    void coeff_loop(std::vector<long4_t> &coeffs)
+    void coeff_loop()
     {
         /* cyclic permutation to the right.
          * maybe could use bit ops? (did not work past 128 bit lanes?) */
@@ -65,14 +66,14 @@ private:
             idx = _mm256_permutevar8x32_epi32(idx, cycle_idx);
 
         for (int col = 0; col < this->cols - 1; col++)
-            coeffs[col] = _mm256_blend_epi32(
+            this->coeffs[col] = _mm256_blend_epi32(
                 _mm256_permutevar8x32_epi32(coeffs[col + 0], idx),
                 _mm256_permutevar8x32_epi32(coeffs[col + 1], idx),
                 0xFF >> index
             );
 
-        coeffs[this->cols - 1] = _mm256_permutevar8x32_epi32(
-            coeffs[this->cols - 1],
+        this->coeffs[this->cols - 1] = _mm256_permutevar8x32_epi32(
+            this->coeffs[this->cols - 1],
             idx
         );
     }
@@ -174,16 +175,20 @@ private:
     }
 
 public:
-    Packed_FMatrix(const FMatrix &matrix)
+    Packed_FMatrix(const int n)
     {
-        this->nmod = matrix.get_n() % VECTOR_N;
-        this->rows = matrix.get_n();
+        this->nmod = n % VECTOR_N;
+        this->rows = n;
         if (this->rows % VECTOR_N)
-            this->rows += VECTOR_N - (matrix.get_n() % VECTOR_N);
+            this->rows += VECTOR_N - (n % VECTOR_N);
         this->cols = this->rows / VECTOR_N;
 
         this->m.resize(this->rows * this->cols);
+        this->coeffs.resize(this->cols);
+    }
 
+    void init(const FMatrix &matrix)
+    {
         for (int r = 0; r < matrix.get_n(); r++)
         {
             for (int c = 0; c < matrix.get_n() / VECTOR_N; c++)
@@ -197,7 +202,7 @@ public:
                               matrix(r, VECTOR_N*c + 5).get_repr(),
                               matrix(r, VECTOR_N*c + 6).get_repr(),
                               matrix(r, VECTOR_N*c + 7).get_repr()
-                          )
+                              )
                     );
             if (this->nmod)
             {
@@ -213,8 +218,8 @@ public:
                               elems[2], elems[3],
                               elems[4], elems[5],
                               elems[6], elems[7]
-                          )
-                );
+                              )
+                    );
             }
         }
         for (int r = matrix.get_n(); r < this->rows; r++)
@@ -228,44 +233,44 @@ public:
             case 1:
                 this->set(r, this->cols - 1, _mm256_set_epi64x(
                               1, 0, 0, 0
-                         )
-                );
+                              )
+                    );
                 break;
             case 2:
                 this->set(r, this->cols - 1, _mm256_set_epi64x(
                               0, 1ull << 32, 0, 0
-                         )
-                );
+                              )
+                    );
                 break;
             case 3:
                 this->set(r, this->cols - 1, _mm256_set_epi64x(
                               0, 1, 0, 0
-                         )
-                );
+                              )
+                    );
                 break;
             case 4:
                 this->set(r, this->cols - 1, _mm256_set_epi64x(
                               0, 0, 1ull << 32, 0
-                         )
-                );
+                              )
+                    );
                 break;
             case 5:
                 this->set(r, this->cols - 1, _mm256_set_epi64x(
                               0, 0, 1, 0
-                         )
-                );
+                              )
+                    );
                 break;
             case 6:
                 this->set(r, this->cols - 1, _mm256_set_epi64x(
                               0, 0, 0, 1ull << 32
-                         )
-                );
+                              )
+                    );
                 break;
             case 7:
                 this->set(r, this->cols - 1, _mm256_set_epi64x(
                               0, 0, 0, 1
-                         )
-                );
+                              )
+                    );
                 break;
             }
 
@@ -297,7 +302,7 @@ public:
             elems[4], elems[5],
             elems[6], elems[7]
         );
-        std::vector<long4_t> coeffs(this->cols);
+
         long4_t idx = _mm256_set_epi32(
             0b000,
             0b001,
@@ -313,7 +318,7 @@ public:
         {
             /* already save them in reverse order here and permute,
              * values in reverse order, too*/
-            coeffs[this->cols - 1 - col] = _mm256_permutevar8x32_epi32(
+            this->coeffs[this->cols - 1 - col] = _mm256_permutevar8x32_epi32(
                 prod,
                 idx
             );
@@ -330,25 +335,25 @@ public:
             switch (this->nmod)
             {
             case 1:
-                coeff_loop<1>(coeffs);
+                coeff_loop<1>();
                 break;
             case 2:
-                coeff_loop<2>(coeffs);
+                coeff_loop<2>();
                 break;
             case 3:
-                coeff_loop<3>(coeffs);
+                coeff_loop<3>();
                 break;
             case 4:
-                coeff_loop<4>(coeffs);
+                coeff_loop<4>();
                 break;
             case 5:
-                coeff_loop<5>(coeffs);
+                coeff_loop<5>();
                 break;
             case 6:
-                coeff_loop<6>(coeffs);
+                coeff_loop<6>();
                 break;
             case 7:
-                coeff_loop<7>(coeffs);
+                coeff_loop<7>();
                 break;
             }
         }
@@ -359,7 +364,7 @@ public:
             this->set(r2, col,
                       global::F->wide_mul(
                           this->get(r2, col),
-                          coeffs[col]
+                          this->coeffs[col]
                       )
                 );
         }

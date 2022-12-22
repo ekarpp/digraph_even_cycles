@@ -9,7 +9,7 @@
 
 using namespace std;
 
-Graph::Graph(vector<vector<int>> &adjacency_list)
+Graph::Graph(vector<vector<int>> &adjacency_list): A(adjacency_list.size())
 {
     this->n = adjacency_list.size();
     this->adj = adjacency_list;
@@ -40,7 +40,7 @@ void Graph::sample_adjacency()
         }
     }
 
-    this->A = FMatrix(this->n, m);
+    this->A.copy(FMatrix(this->n, m));
     return;
 }
 
