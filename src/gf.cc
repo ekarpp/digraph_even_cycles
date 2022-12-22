@@ -80,7 +80,7 @@ uint64_t GF2_n::ext_euclid(uint64_t a) const
 /* carryless multiplication of a and b, polynomial multiplicatoin that is
  * done with Intel CLMUL
  */
-uint64_t GF4_n::clmul(uint64_t a, uint64_t b) const
+uint64_t GF2_n::clmul(uint64_t a, uint64_t b) const
 {
     const __m128i prod = _mm_clmulepi64_si128(
         _mm_set_epi64x(0, a),
@@ -176,7 +176,7 @@ __m256i GF2_16::wide_mul(__m256i a, __m256i b)
 /* returns r s.t. for some q,
  * a = q*field.mod + r is the division relation (in Z(2^n))
  */
-virtual uint64_t GF4_n::rem(uint64_t a) const
+uint64_t GF2_n::rem(uint64_t a) const
 {
     uint64_t lo = a & this->mask;
     uint64_t hi = a >> this->n;
@@ -208,4 +208,31 @@ uint64_t GF2_32::rem(uint64_t a) const
     r ^= (r << 2) ^ (r << 3) ^ (r << 7);
     r &= 0xFFFFFFFF;
     return r ^ lo;
+}
+
+GR_element GF_element::lift() const
+{
+    return GR_element(this->repr, 0b0);
+}
+
+namespace util
+{
+    /* returns n distinct random elements from
+     * global::F-> (use LSFR?) */
+    std::vector<GF_element> distinct_elements(int n)
+    {
+        std::vector<GF_element> vec(n);
+        std::set<uint64_t> have;
+        for (int i = 0; i < n; i++)
+        {
+            GF_element e = util::GF_random();
+            while (have.count(e.get_repr()) == 1)
+                e = util::GF_random();
+            vec[i] = e;
+            have.insert(e.get_repr());
+        }
+        return vec;
+    }
+
+
 }

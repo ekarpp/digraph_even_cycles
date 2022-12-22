@@ -47,22 +47,22 @@ public:
     /* returns a copy of this */
     FMatrix copy() const;
 
-    const std::valarray<GF_element> &get_m() const { return this->m; }
+    inline const std::valarray<GF_element> &get_m() const { return this->m; }
 
-    int get_n() const { return this->n; }
+    inline int get_n() const { return this->n; }
 
-    void mul(int row, int col, const GF_element &v)
+    inline void mul(int row, int col, const GF_element &v)
     {
         this->m[row*this->n + col] *= v;
     }
 
-    void mul_row(int row, const GF_element &v)
+    inline void mul_row(int row, const GF_element &v)
     {
         for (int col = 0; col < this->n; col++)
             this->m[row*this->n + col] *= v;
     }
 
-    void mul_gamma(int r1, int r2, const GF_element &gamma)
+    inline void mul_gamma(int r1, int r2, const GF_element &gamma)
     {
         GF_element prod = gamma;
         for (int col = 1; col < this->n; col++)
@@ -74,18 +74,18 @@ public:
     }
 
     /* subtract v times r1 from r2 */
-    void row_op(int r1, int r2, GF_element v)
+    inline void row_op(int r1, int r2, GF_element v)
     {
         for (int col = 0; col < this->n; col++)
             this->m[r2*this->n + col] -= v*this->operator()(r1,col);
     }
 
-    const GF_element &operator()(int row, int col) const
+    inline const GF_element &operator()(int row, int col) const
     {
         return this->m[row*this->n + col];
     }
 
-    bool operator==(const FMatrix &other) const
+    inline bool operator==(const FMatrix &other) const
     {
         if (this->n != other.get_n())
             return false;
@@ -98,18 +98,18 @@ public:
         return true;
     }
 
-    bool operator!=(const FMatrix &other) const
+    inline bool operator!=(const FMatrix &other) const
     {
         return !(*this == other);
     }
 
-    void set(int row, int col, GF_element val)
+    inline void set(int row, int col, GF_element val)
     {
         this->m[row*this->n + col] = val;
     }
 
     /* swap rows r1 and r2 starting from column idx */
-    void swap_rows(int r1, int r2, int idx = 0)
+    inline void swap_rows(int r1, int r2, int idx = 0)
     {
         GF_element tmp;
         for (int col = idx; col < this->n; col++)

@@ -172,7 +172,7 @@ GR_repr GR4_n::fast_mul(GR_repr a, GR_repr b) const
     return { hi1 ^ hi2 ^ hi, lo };
 }
 
-virtual GR_repr GR4_n::kronecker_mul(GR_repr a, GR_repr b) const
+GR_repr GR4_n::kronecker_mul(GR_repr a, GR_repr b) const
 {
     /* we use different representation of polynomials than before here.
      * each bit string can be split to sets of 2 bits where each set
@@ -234,7 +234,7 @@ virtual GR_repr GR4_n::kronecker_mul(GR_repr a, GR_repr b) const
     return ret;
 }
 
-virtual kronecker_form GR4_n::kronecker_substitution(GR_repr x) const
+kronecker_form GR4_n::kronecker_substitution(GR_repr x) const
 {
     /* combine lo and hi to single uint64_t
      * where 2 bits represent single coefficient.
@@ -334,7 +334,7 @@ GR_repr GR4_n::euclid_rem(GR_repr a) const
 }
 
 /* https://dl.acm.org/doi/10.1016/j.ipl.2010.04.011 */
-virtual GR_repr GR4_n::intel_rem(GR_repr a) const
+GR_repr GR4_n::intel_rem(GR_repr a) const
 {
     GR_repr hi = { a.hi >> this->n, a.lo >> this->n };
     GR_repr lo = { a.hi & this->mask, a.lo & this->mask };
@@ -410,4 +410,9 @@ GR_repr GR4_n::mont_rem(GR_repr a) const
 
     c >>= this->n;
     return c;
+}
+
+GF_element GR_element::project() const
+{
+    return GF_element(this->repr.lo);
 }

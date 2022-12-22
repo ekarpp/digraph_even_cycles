@@ -279,6 +279,8 @@ public:
     inline uint64_t get_hi() const { return this->repr.hi; }
     inline GR_repr get_repr() const { return this->repr; }
 
+    GF_element project() const;
+
     inline GR_element &operator=(const GR_element &other)
     {
         this->repr.lo = other.get_lo();
@@ -306,34 +308,28 @@ public:
 
 namespace util
 {
-    inline GR_element tau(GR_element sigma, GR_element v)
+    inline GR_element tau(const GR_element &sigma, const GR_element &v)
     {
         return sigma.project().inv().lift() * v;
     }
 
-    inline GR_element GR_zero() const
+    inline GR_element GR_zero()
     {
         return GR_element(0b0, 0b0);
     }
 
-    inline GR_element GR_one() const
+    inline GR_element GR_one()
     {
         return GR_element(0b1, 0b0);
     }
 
-    inline GR_element GR_random() const
+    inline GR_element GR_random()
     {
         return GR_element(
-            global::randgen() & this->mask,
-            global::randgen() & this->mask
-            );
+            global::randgen() & global::E->get_mask(),
+            global::randgen() & global::E->get_mask()
+        );
     }
-
-    inline GF_element project(const GR_element &e) const
-    {
-        return GF_element(e.get_repr().lo);
-    }
-
 }
 
 #endif

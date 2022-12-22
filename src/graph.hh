@@ -18,8 +18,8 @@ private:
 public:
     Graph(std::vector<std::vector<int>> &adjacency_list);
 
-    int get_n() const { return n; }
-    FMatrix &get_A() { return A; }
+    inline int get_n() const { return n; }
+    inline FMatrix &get_A() { return A; }
 
     int dfs_cycle(int start,
                    int depth,

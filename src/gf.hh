@@ -184,6 +184,8 @@ public:
         return this->repr > other.get_repr();
     }
 
+    GR_element lift() const;
+
     void print() const
     {
         std::cout << std::bitset<8>(this->repr) << std::endl;
@@ -192,42 +194,22 @@ public:
 
 namespace util
 {
-    /* returns n distinct random elements from
-     * global::F-> (use LSFR?) */
-    inline std::vector<GF_element> distinct_elements(int n)
-    {
-        std::vector<GF_element> vec(n);
-        std::set<uint64_t> have;
-        for (int i = 0; i < n; i++)
-        {
-            GF_element e = global::F->random();
-            while (have.count(e.get_repr()) == 1)
-                e = global::F->random();
-            vec[i] = e;
-            have.insert(e.get_repr());
-        }
-        return vec;
-    }
+    std::vector<GF_element> distinct_elements(int n);
 
-    inline GF_element GF_zero() const
+    inline GF_element GF_zero()
     {
         return GF_element(0);
     }
 
-    inline GF_element GF_one() const
+    inline GF_element GF_one()
     {
         return GF_element(1);
     }
 
     /* this can create zero, is it a problem? */
-    inline GF_element GF_random() const
+    inline GF_element GF_random()
     {
-        return GF_element(global::randgen() & this->mask);
-    }
-
-    inline GR_element lift(const GF_element &e) const
-    {
-        return GR_element(e.get_repr(), 0b0);
+        return GF_element(global::randgen() & global::F->get_mask());
     }
 }
 

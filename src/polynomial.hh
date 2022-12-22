@@ -59,55 +59,10 @@ public:
 
 namespace util
 {
-    /* la grange interpolation with gamma and delta
-     * note that we are in characteristic 2 and thus
-     * - = +. done with the formula (3.3) here:
-     * https://doi.org/10.1137/S0036144502417715 */
-    inline Polynomial poly_interpolation(
+    Polynomial poly_interpolation(
         const std::vector<GF_element> &gamma,
         const std::vector<GF_element> &delta
-    )
-    {
-        // assert(gamma.size() == delta.size())
-        // assert(n > 2)
-        int n = gamma.size();
-        Polynomial interp(n - 1);
-
-        /* weights*/
-        std::vector<GF_element> w(n, global::F->one());
-        for (int j = 1; j < n; j++)
-        {
-            for (int k = 0; k < j; k++)
-            {
-                w[k] *= gamma[k] + gamma[j];
-                w[j] *= gamma[k] + gamma[j];
-            }
-        }
-
-        for (int j = 0; j < n; j++)
-            w[j].inv_in_place();
-
-        /* main polynomial [ prod_{i} (x + gamma_i) ]*/
-        std::vector<GF_element> P(n+1, global::F->zero());
-        P[n] = global::F->one();
-        P[n-1] = gamma[0];
-        for (int i = 1; i < n; i++)
-        {
-            for (int j = n - i - 1; j < n - 1; j++)
-                P[j] += gamma[i] * P[j+1];
-            P[n - 1] += gamma[i];
-        }
-
-        for (int i = 0; i < n; i++)
-        {
-            Polynomial tmp(P);
-            tmp.div(gamma[i]);
-            tmp *= w[i] * delta[i];
-            interp += tmp;
-        }
-
-        return interp;
-    }
+    );
 }
 
 #endif
