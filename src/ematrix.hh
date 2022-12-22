@@ -30,14 +30,14 @@ public:
 
     GR_element row_op(int i1, int j);
 
-    int get_n() const { return this->n; }
+    inline int get_n() const { return this->n; }
 
-    const GR_element &operator()(int row, int col) const
+    inline const GR_element &operator()(int row, int col) const
     {
         return this->m[row*this->n + col];
     }
 
-    bool operator==(const EMatrix &other) const
+    inline bool operator==(const EMatrix &other) const
     {
         if (this->n != other.get_n())
             return false;
@@ -50,12 +50,12 @@ public:
         return true;
     }
 
-    bool operator!=(const EMatrix &other) const
+    inline bool operator!=(const EMatrix &other) const
     {
         return !(*this == other);
     }
 
-    void set(int row, int col, GR_element val)
+    inline void set(int row, int col, GR_element val)
     {
         this->m[row*this->n + col] = val;
     }

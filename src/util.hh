@@ -18,34 +18,7 @@ namespace util
     /* given an adjacency list for an undirected graph,
      * directs it such that edges are made one way
      * with direction chosen uniformly at random. */
-    inline void direct_undirected(std::vector<std::vector<int>> &adj)
-    {
-        for (int u = 0; u < (int) adj.size(); u++)
-        {
-            std::vector<int> nbors = adj[u];
-            for (int i = 0; i < (int) nbors.size(); i++)
-            {
-                int v = nbors[i];
-                if (u > v)
-                    continue;
-                /* rndom choose del */
-                int keep = u;
-                int del = v;
-                if (global::randgen() % 2)
-                {
-                    keep = v;
-                    del = u;
-                }
-                std::vector<int>::iterator pos = std::find(
-                    adj[del].begin(),
-                    adj[del].end(),
-                    keep
-                );
-                adj[del].erase(pos);
-            }
-        }
-        return;
-    }
+    void direct_undirected(std::vector<std::vector<int>> &adj);
 
     uint64_t irred_poly(int deg);
     bool gcd1(int i, std::bitset<64> p);

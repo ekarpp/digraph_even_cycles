@@ -28,7 +28,7 @@ int Solver::shortest_even_cycle(Graph G)
     Polynomial p = util::poly_interpolation(gamma, delta);
 
     for (int k = 2; k <= G.get_n(); k += 2)
-        if (p[G.get_n() - k] != global::F->zero())
+        if (p[G.get_n() - k] != util::GF_zero())
             return k;
 
     return -1;

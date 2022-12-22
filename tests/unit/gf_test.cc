@@ -26,8 +26,8 @@ void GF_test::test_add_inverse()
     while (i <= global::F->get_mask())
     {
         GF_element e(i);
-        if (e + e != global::F->zero()
-            || e - e != global::F->zero())
+        if (e + e != util::GF_zero()
+            || e - e != util::GF_zero())
             err++;
         i++;
     }
@@ -40,9 +40,9 @@ void GF_test::test_associativity()
     int err = 0;
     for (int i = 0; i < 10000; i++)
     {
-        GF_element a = global::F->random();
-        GF_element b = global::F->random();
-        GF_element c = global::F->random();
+        GF_element a = util::GF_random();
+        GF_element b = util::GF_random();
+        GF_element c = util::GF_random();
         if (a*(b+c) != c*a + b*a)
             err++;
     }
@@ -57,7 +57,7 @@ void GF_test::test_mul_id()
     while (i <= global::F->get_mask())
     {
         GF_element e(i);
-        if (e * global::F->one() != e)
+        if (e * util::GF_one() != e)
             err++;
         i++;
     }
@@ -72,7 +72,7 @@ void GF_test::test_mul_inverse()
     while (i <= global::F->get_mask())
     {
         GF_element e(i);
-        if (e / e != global::F->one())
+        if (e / e != util::GF_one())
             err++;
         i++;
     }

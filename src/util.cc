@@ -12,6 +12,35 @@ using namespace std;
 
 namespace util
 {
+    void direct_undirected(std::vector<std::vector<int>> &adj)
+    {
+        for (int u = 0; u < (int) adj.size(); u++)
+        {
+            std::vector<int> nbors = adj[u];
+            for (int i = 0; i < (int) nbors.size(); i++)
+            {
+                int v = nbors[i];
+                if (u > v)
+                    continue;
+                /* rndom choose del */
+                int keep = u;
+                int del = v;
+                if (global::randgen() % 2)
+                {
+                    keep = v;
+                    del = u;
+                }
+                std::vector<int>::iterator pos = std::find(
+                    adj[del].begin(),
+                    adj[del].end(),
+                    keep
+                );
+                adj[del].erase(pos);
+            }
+        }
+        return;
+    }
+
     /* Ben-Or's irreducible polynomial generator.
      * returns irreducible polynomial of degree deg
      * in Z2[x] encoded as a bitstring

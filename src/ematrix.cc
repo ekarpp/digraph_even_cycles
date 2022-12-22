@@ -46,7 +46,7 @@ FMatrix EMatrix::project() const
  * of the paper*/
 GR_element EMatrix::per_m_det()
 {
-    GR_element acc = global::E->zero();
+    GR_element acc = util::GR_zero();
 
     /* marked rows */
     valarray<bool> rows(false, this->n);
@@ -79,7 +79,7 @@ GR_element EMatrix::per_m_det()
         }
     }
 
-    GR_element det = global::E->zero();
+    GR_element det = util::GR_zero();
     /* if more than two unmarked columns, det and per
      * of the final matrix is zero because in characteristic
      * 2 even*even = 0 */
@@ -102,7 +102,7 @@ GR_element EMatrix::per_m_det()
          * and column */
         int swaps = 0;
         valarray<bool> swapped(false, this->n);
-        GR_element per = global::E->one();
+        GR_element per = util::GR_one();
         for (int col = 0; col < (int) odd.size(); col++)
         {
             int row = odd[col];
@@ -118,7 +118,7 @@ GR_element EMatrix::per_m_det()
         /* can just skip this and not just add per to acc */
         if (swaps % 2 == 1)
             /* unary - ? */
-            det = global::E->zero() - per;
+            det = util::GR_zero() - per;
         else
             det = per;
     }
@@ -130,7 +130,7 @@ GR_element EMatrix::per_m_det()
  * return accumulator */
 GR_element EMatrix::row_op(int i1, int j)
 {
-    GR_element acc = global::E->zero();
+    GR_element acc = util::GR_zero();
     const GR_element sigma = this->operator()(i1, j);
     for (int i2 = 0; i2 < this->n; i2++)
     {
@@ -153,7 +153,7 @@ GR_element EMatrix::row_op(int i1, int j)
             }
             /* project creates new copy here */
             const Polynomial p = mpp.project().pdet(i1, i2);
-            GF_element sum = global::F->zero();
+            GF_element sum = util::GF_zero();
             for (int i = 0; i < this->n - 1; i++)
                 sum += p[i];
             GR_element per = sum.lift() + sum.lift();

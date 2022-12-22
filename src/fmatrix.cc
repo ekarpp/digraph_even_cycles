@@ -54,15 +54,15 @@ FMatrix FMatrix::mul_diag(const GF_element &e) const
  * not affect the determinant. */
 GF_element FMatrix::det()
 {
-    GF_element det = global::F->one();
+    GF_element det = util::GF_one();
     for (int col = 0; col < this->n; col++)
     {
         /* pivot */
-        GF_element mx = global::F->zero();
+        GF_element mx = util::GF_zero();
         int mxi = -1;
         for (int row = col; row < this->n; row++)
         {
-            if (this->operator()(row,col) != global::F->zero())
+            if (this->operator()(row,col) != util::GF_zero())
             {
                 mx = this->operator()(row,col);
                 mxi = row;
@@ -70,8 +70,8 @@ GF_element FMatrix::det()
             }
         }
 
-        if (mx == global::F->zero())
-            return global::F->zero();
+        if (mx == util::GF_zero())
+            return util::GF_zero();
 
         if (mxi != col)
             this->swap_rows(mxi, col);

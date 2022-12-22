@@ -24,18 +24,18 @@ Graph::Graph(vector<vector<int>> &adjacency_list)
  */
 void Graph::sample_adjacency()
 {
-    valarray<GF_element> m(global::F->zero(), this->n * this->n);
+    valarray<GF_element> m(util::GF_zero(), this->n * this->n);
 
     for (int u = 0; u < this->n; u++)
     {
         /* loop at each vertex */
-        m[u*this->n + u] = global::F->random();
+        m[u*this->n + u] = util::GF_random();
         for (uint i = 0; i < this->adj[u].size(); i++)
         {
             int v = this->adj[u][i];
-            GF_element w = global::F->random();
-            while (w == global::F->zero())
-                w = global::F->random();
+            GF_element w = util::GF_random();
+            while (w == util::GF_zero())
+                w = util::GF_random();
             m[u*this->n + v] = w;
         }
     }
