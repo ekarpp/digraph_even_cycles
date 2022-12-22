@@ -17,13 +17,15 @@ class EMatrix;
 class FMatrix
 {
 private:
+    const int n;
     std::valarray<GF_element> m;
-    int n;
 
 public:
     /* for graph.cc */
-    FMatrix() {};
-    FMatrix(int n, std::valarray<GF_element> matrix);
+    FMatrix(): n(0) {};
+    FMatrix(const int d): n(d), m(d*d) {};
+    FMatrix(int n, const std::valarray<GF_element> &matrix);
+
 
     /* return pcc_{n-1} of the matrix we get when we
      * multiply the diagonal of this matrix by e */
@@ -44,8 +46,8 @@ public:
      * (1,r,..,r^(n-1)) and r2 by monomials (r^(n-1),..,r,1) */
     Polynomial pdet(int r1, int r2) const;
 
-    /* returns a copy of this */
-    FMatrix copy() const;
+    /* copies values from A to this */
+    void copy(const FMatrix &A);
 
     inline const std::valarray<GF_element> &get_m() const { return this->m; }
 

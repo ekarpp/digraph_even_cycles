@@ -181,11 +181,11 @@ void FMatrix_test::test_pdet()
             r2 = global::randgen() % this->dim;
 
         Polynomial pdet = m.pdet(r1, r2);
-
+        FMatrix A(m.get_n());
         for (int i = 0; i < reps; i++)
         {
             GF_element gamma = util::GF_random();
-            FMatrix A = m.copy();
+            A.copy(m);
             A.mul_gamma(r1, r2, gamma);
             GF_element d = A.det();
             if (pdet.eval(gamma) != d)

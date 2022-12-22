@@ -10,12 +10,11 @@
 
 using namespace std;
 
-FMatrix::FMatrix(int n, valarray<GF_element> matrix): m(n*n)
+FMatrix::FMatrix(const int d, const valarray<GF_element> &matrix): n(d), m(d*d)
 {
-    this->n = n;
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++)
-            m[i*n + j] = matrix[i*n + j];
+            this->m[i*n + j] = matrix[i*n + j];
 }
 
 EMatrix FMatrix::lift() const
@@ -95,9 +94,11 @@ Polynomial FMatrix::pdet(int r1, int r2) const
 
     if (global::F->get_n() != 16)
     {
+        FMatrix A(this->n);
+
         for (int i = 0; i < 2*this->n - 1; i++)
         {
-            FMatrix A = this->copy();
+            A.copy(*this);
             A.mul_gamma(r1, r2, gamma[i]);
             delta[i] = A.det();
         }
@@ -118,15 +119,12 @@ Polynomial FMatrix::pdet(int r1, int r2) const
 
 }
 
-FMatrix FMatrix::copy() const
+/* copy valarray instead?? */
+void FMatrix::copy(const FMatrix &A)
 {
-    valarray<GF_element> m(this->n * this->n);
-
     for (int row = 0; row < this->n; row++)
         for (int col = 0; col < this->n; col++)
-            m[row*n + col] = this->operator()(row,col);
-
-    return FMatrix(this->n, m);
+            this->m[row*n + col] = A(row,col);
 }
 
 GF_element FMatrix::pcc(const GF_element &e) const
