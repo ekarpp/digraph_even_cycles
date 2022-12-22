@@ -119,8 +119,8 @@ void FMatrix_test::test_determinant_vandermonde()
     for (int t = 0; t < this->tests; t++)
     {
         FMatrix vander = this->vandermonde();
-        GF_element det = util::GF_one();
 
+        GF_element det = util::GF_one();
         for (int i = 0; i < this->dim; i++)
             for (int j = i+1; j < this->dim; j++)
                 det *= vander(j, 1) - vander(i, 1);

@@ -69,7 +69,7 @@ public:
     inline void row_op(int r1, int r2, const T &v)
     {
         for (int col = 0; col < this->n; col++)
-            this->m[r2*this->n + col] -= v*this->operator()(r1,col);
+            this->m[r2*this->n + col] -= v * this->operator()(r1, col);
     }
 
     /* copy values from other to this */
@@ -78,7 +78,7 @@ public:
         // assert this.n == other.n
         for (int row = 0; row < this->n; row++)
             for (int col = 0; col < this->n; col++)
-                this->m[row*n + col] = other(row,col);
+                this->m[row*n + col] = other(row, col);
     }
 
     inline void print() const

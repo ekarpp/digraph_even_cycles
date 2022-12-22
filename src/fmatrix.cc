@@ -50,27 +50,27 @@ GF_element FMatrix::det()
     for (int col = 0; col < this->get_n(); col++)
     {
         /* pivot */
-        GF_element mx = util::GF_zero();
-        int mxi = -1;
+        int pivot_idx = -1;
         for (int row = col; row < this->get_n(); row++)
         {
             if (this->operator()(row,col) != util::GF_zero())
             {
-                mx = this->operator()(row,col);
-                mxi = row;
+                pivot_idx = row;
                 break;
             }
         }
 
-        if (mx == util::GF_zero())
+        if (pivot_idx == -1)
             return util::GF_zero();
 
-        if (mxi != col)
-            this->swap_rows(mxi, col);
+        if (pivot_idx != col)
+            this->swap_rows(pivot_idx, col);
 
-        det *= mx;
-        mx.inv_in_place();
-        this->mul_row(col, mx);
+        GF_element pivot = this->operator()(col, col);
+        det *= pivot;
+        pivot.inv_in_place();
+        this->mul_row(col, pivot);
+
         for (int row = col+1; row < this->get_n(); row++)
             this->row_op(col, row, this->operator()(row,col));
     }
