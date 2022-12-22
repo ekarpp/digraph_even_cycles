@@ -23,12 +23,12 @@ private:
     int nmod;
     std::vector<long4_t> m;
 
-    const long4_t &get(int row, int col) const
+    const long4_t &get(const int row, const int col) const
     {
         return this->m[row*this->cols + col];
     }
 
-    void set(int row, int col, const long4_t &v)
+    void set(const int row, const int col, const long4_t &v)
     {
         this->m[row*this->cols + col] = v;
     }
@@ -79,7 +79,7 @@ private:
 
     /* returns true if zero det */
     template <int index>
-    bool det_loop(int col, uint64_t &det)
+    bool det_loop(const int col, uint64_t &det)
     {
         const int r0 = VECTOR_N*col + index;
         int piv_idx = -1;
@@ -112,29 +112,66 @@ private:
         if (piv_idx != r0)
             this->swap_rows(piv_idx, r0);
 
+        constexpr char mask = VECTOR_N - 1 - index;
+        /* rows got swapped */
         uint64_t pivot =
-            _mm256_extract_epi32(this->get(piv_idx, col), VECTOR_N - 1 - index);
+            _mm256_extract_epi32(this->get(r0, col), mask);
         /* vectorize? */
         det = global::F->rem(
             global::F->clmul(det, pivot)
         );
         pivot = global::F->ext_euclid(pivot);
-        this->mul_row(r0, pivot);
+        this->mul_row(r0, col, _mm256_set1_epi32(pivot));
+
         /* vectorize end? */
-        constexpr char mask = VECTOR_N - 1 - index;
         const long4_t idx = _mm256_set1_epi32(mask);
+
         for (int row = r0 + 1; row < this->rows; row++)
         {
             const long4_t val = _mm256_permutevar8x32_epi32(
                 this->get(row, col),
                 idx
             );
-            this->row_op(r0, row, val);
+            this->row_op(r0, row, col, val);
         }
 
         return false;
     }
 
+    inline void swap_rows(const int r1, const int r2)
+    {
+        for (int c = 0; c < this->cols; c++)
+        {
+            const long4_t tmp = this->get(r1, c);
+            this->set(r1, c, this->get(r2, c));
+            this->set(r2, c, tmp);
+        }
+    }
+
+    inline void mul_row(const int row, const int col0, const long4_t &pack)
+    {
+        for (int col = col0; col < this->cols; col++)
+            this->set(row, col,
+                      global::F->wide_mul(this->get(row, col), pack)
+                );
+    }
+
+    /* subtract v times r1 from r2 */
+    inline void row_op(const int r1,
+                       const int r2,
+                       const int col0,
+                       const long4_t &pack
+    )
+    {
+        for (int col = col0; col < this->cols; col++)
+        {
+            const long4_t tmp = global::F->wide_mul(this->get(r1, col), pack);
+
+            this->set(r2, col,
+                      _mm256_xor_si256(this->get(r2, col), tmp)
+            );
+        }
+    }
 
 public:
     Packed_FMatrix(const FMatrix &matrix)
@@ -164,7 +201,7 @@ public:
                     );
             if (this->nmod)
             {
-                int c = this->cols - 1;
+                const int c = this->cols - 1;
                 uint64_t elems[VECTOR_N];
                 for (int i = 0; i < VECTOR_N; i++)
                     elems[i] = 0;
@@ -325,39 +362,6 @@ public:
                           coeffs[col]
                       )
                 );
-        }
-    }
-
-    inline void swap_rows(int r1, int r2)
-    {
-        long4_t tmp;
-        for (int c = 0; c < this->cols; c++)
-        {
-            tmp = this->get(r1, c);
-            this->set(r1, c, this->get(r2, c));
-            this->set(r2, c, tmp);
-        }
-    }
-
-    inline void mul_row(int row, uint64_t v)
-    {
-        const long4_t pack = _mm256_set1_epi32(v);
-        for (int col = 0; col < this->cols; col++)
-            this->set(row, col,
-                      global::F->wide_mul(this->get(row, col), pack)
-                );
-    }
-
-    /* subtract v times r1 from r2 */
-    inline void row_op(int r1, int r2, const long4_t &pack)
-    {
-        for (int col = 0; col < this->cols; col++)
-        {
-            const long4_t tmp = global::F->wide_mul(this->get(r1, col), pack);
-
-            this->set(r2, col,
-                      _mm256_xor_si256(this->get(r2, col), tmp)
-            );
         }
     }
 
