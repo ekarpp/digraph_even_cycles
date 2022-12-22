@@ -87,8 +87,8 @@ int main(int argc, char **argv)
     {
         a[i] = global::randgen() & global::F->get_mask();
         b[i] = global::randgen() & global::F->get_mask();
-        aa[i] = global::F->random();
-        bb[i] = global::F->random();
+        aa[i] = util::GF_random();
+        bb[i] = util::GF_random();
     }
 
     double start;

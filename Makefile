@@ -18,11 +18,11 @@ PERF_OBJ := extension.o polynomial.o gf.o util.o
 ###########
 
 .PHONY: clean all help
+all: $(BIN) nauty/geng nauty/directg nauty/listg
+
 clean:
 	rm -f *.o *.s *.asm1 *.asm2 $(BIN)
 	cd nauty && git clean -xf && git checkout .
-
-all: $(BIN) nauty/geng nauty/directg nauty/listg
 
 help:
 	@echo 'list of available commands:'
