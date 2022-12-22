@@ -23,12 +23,12 @@ private:
     int nmod;
     std::vector<long4_t> m;
 
-    long4_t get(int row, int col) const
+    const long4_t &get(int row, int col) const
     {
         return this->m[row*this->cols + col];
     }
 
-    void set(int row, int col, long4_t v)
+    void set(int row, int col, const long4_t &v)
     {
         this->m[row*this->cols + col] = v;
     }
@@ -77,9 +77,9 @@ private:
         );
     }
 
-
+    /* returns true if zero det */
     template <int index>
-    void det_loop(int col, uint64_t &det)
+    bool det_loop(int col, uint64_t &det)
     {
         int r0 = VECTOR_N*col + index;
         long4_t mx;
@@ -109,7 +109,7 @@ private:
         if (mxi == -1)
         {
             det = 0x0;
-            return;
+            return true;
         }
 
         uint64_t mx_ext =
@@ -134,14 +134,12 @@ private:
             this->row_op(r0, row, val);
         }
 
-        return;
+        return false;
     }
 
 
 public:
-    Packed_FMatrix(
-        const FMatrix &matrix
-    )
+    Packed_FMatrix(const FMatrix &matrix)
     {
         this->nmod = matrix.get_n() % VECTOR_N;
         this->rows = matrix.get_n();
@@ -155,30 +153,31 @@ public:
         {
             for (int c = 0; c < matrix.get_n() / VECTOR_N; c++)
                 this->set(r, c,
-                          _mm256_set_epi64x(
-                              matrix(r, VECTOR_N*c + 0).get_repr() << 32
-                                  | matrix(r, VECTOR_N*c + 1).get_repr(),
-                              matrix(r, VECTOR_N*c + 2).get_repr() << 32
-                                  | matrix(r, VECTOR_N*c + 3).get_repr(),
-                              matrix(r, VECTOR_N*c + 4).get_repr() << 32
-                                  | matrix(r, VECTOR_N*c + 5).get_repr(),
-                              matrix(r, VECTOR_N*c + 6).get_repr() << 32
-                                  | matrix(r, VECTOR_N*c + 7).get_repr()
+                          _mm256_set_epi32(
+                              matrix(r, VECTOR_N*c + 0).get_repr(),
+                              matrix(r, VECTOR_N*c + 1).get_repr(),
+                              matrix(r, VECTOR_N*c + 2).get_repr(),
+                              matrix(r, VECTOR_N*c + 3).get_repr(),
+                              matrix(r, VECTOR_N*c + 4).get_repr(),
+                              matrix(r, VECTOR_N*c + 5).get_repr(),
+                              matrix(r, VECTOR_N*c + 6).get_repr(),
+                              matrix(r, VECTOR_N*c + 7).get_repr()
                           )
                     );
             if (this->nmod)
             {
                 int c = this->cols - 1;
-                uint64_t elems[4];
-                elems[0] = 0; elems[1] = 0; elems[2] = 0; elems[3] = 0;
+                uint64_t elems[VECTOR_N];
+                for (int i = 0; i < VECTOR_N; i++)
+                    elems[i] = 0;
                 for (int i = 0; i < this->nmod; i++)
-                    elems[i/2] |= matrix(r, VECTOR_N*c + i).get_repr() << (32*(1 - i%2));
+                    elems[i] = matrix(r, VECTOR_N*c + i).get_repr();
 
-                this->set(r, c, _mm256_set_epi64x(
-                              elems[0],
-                              elems[1],
-                              elems[2],
-                              elems[3]
+                this->set(r, c, _mm256_set_epi32(
+                              elems[0], elems[1],
+                              elems[2], elems[3],
+                              elems[4], elems[5],
+                              elems[6], elems[7]
                           )
                 );
             }
@@ -333,7 +332,7 @@ public:
         }
     }
 
-    void swap_rows(int r1, int r2)
+    inline void swap_rows(int r1, int r2)
     {
         long4_t tmp;
         for (int c = 0; c < this->cols; c++)
@@ -344,7 +343,7 @@ public:
         }
     }
 
-    void mul_row(int row, uint64_t v)
+    inline void mul_row(int row, uint64_t v)
     {
         long4_t pack = _mm256_set1_epi32(v);
         for (int col = 0; col < this->cols; col++)
@@ -354,7 +353,7 @@ public:
     }
 
     /* subtract v times r1 from r2 */
-    void row_op(int r1, int r2, long4_t pack)
+    inline void row_op(int r1, int r2, const long4_t &pack)
     {
         for (int col = 0; col < this->cols; col++)
         {
@@ -371,11 +370,13 @@ public:
         uint64_t det = 0x1;
         for (int col = 0; col < this->cols; col++)
         {
-            /* each "column" is a vector that has 8 real columns */
-            det_loop<0>(col, det); det_loop<1>(col, det);
-            det_loop<2>(col, det); det_loop<3>(col, det);
-            det_loop<4>(col, det); det_loop<5>(col, det);
-            det_loop<6>(col, det); det_loop<7>(col, det);
+            /* each "column" is a vector that has 8 real columns.
+             * each call returns true if the determinant is zero */
+            if (det_loop<0>(col, det) || det_loop<1>(col, det)
+                || det_loop<2>(col, det) || det_loop<3>(col, det)
+                || det_loop<4>(col, det) || det_loop<5>(col, det)
+                || det_loop<6>(col, det) || det_loop<7>(col, det))
+                break;
         }
         return GF_element(det);
     }
