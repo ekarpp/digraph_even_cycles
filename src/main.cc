@@ -177,7 +177,6 @@ int main(int argc, char **argv)
 
     delete global::F;
     delete global::E;
-    G.free();
 
     return 0;
 }

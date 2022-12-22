@@ -15,16 +15,16 @@ public:
     /* for graph.cc */
     Matrix() {}
     Matrix(const int d): n(d), m(d*d) {}
-    Matrix(const int d, const std::valarray<T> &matrix): n(d), m(dim*d)
+    Matrix(const int d, const std::valarray<T> &matrix): n(d), m(d*d)
     {
-        for (int i = 0; i < n; i++)
-            for (int j = 0; j < n; j++)
-                this->m[i*n + j] = matrix[i*n + j];
+        for (int i = 0; i < this->n; i++)
+            for (int j = 0; j < this->n; j++)
+                this->m[i*this->n + j] = matrix[i*this->n + j];
     }
 
     inline int get_n() const { return this->n; }
 
-    inline const T &operator()(int row, int col) const
+    inline const T &operator()(const int row, const int col) const
     {
         return this->m[row*this->n + col];
     }
@@ -47,7 +47,7 @@ public:
         return !(*this == other);
     }
 
-    inline void set(int row, int col, T val)
+    inline void set(const int row, const int col, const T &val)
     {
         this->m[row*this->n + col] = val;
     }
@@ -73,7 +73,7 @@ public:
     }
 
     /* copy values from other to this */
-    inline void copy(const Matrix<T> &other) const
+    inline void copy(const Matrix<T> &other)
     {
         // assert this.n == other.n
         for (int row = 0; row < this->n; row++)

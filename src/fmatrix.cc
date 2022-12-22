@@ -10,13 +10,6 @@
 
 using namespace std;
 
-FMatrix::FMatrix(const int d, const valarray<GF_element> &matrix): n(d), m(d*d)
-{
-    for (int i = 0; i < n; i++)
-        for (int j = 0; j < n; j++)
-            this->m[i*n + j] = matrix[i*n + j];
-}
-
 EMatrix FMatrix::lift() const
 {
     valarray<GR_element> lifted(this->get_n() * this->get_n());
@@ -92,21 +85,13 @@ Polynomial FMatrix::pdet(int r1, int r2) const
     vector<GF_element> gamma = util::distinct_elements(2*this->get_n() - 1);
     vector<GF_element> delta(2*this->get_n() - 1);
 
-<<<<<<< HEAD
     if (global::F->get_n() != 16)
-=======
-    for (int i = 0; i < 2*this->get_n() - 1; i++)
->>>>>>> 0f7b10e (add matrix.hh. matrix tests fail)
     {
-        FMatrix A(this->n);
+        FMatrix A(this->get_n());
 
-        for (int i = 0; i < 2*this->n - 1; i++)
+        for (int i = 0; i < 2*this->get_n() - 1; i++)
         {
-<<<<<<< HEAD
             A.copy(*this);
-=======
-            FMatrix A = this->copy<FMatrix>();
->>>>>>> 0f7b10e (add matrix.hh. matrix tests fail)
             A.mul_gamma(r1, r2, gamma[i]);
             delta[i] = A.det();
         }
@@ -114,9 +99,9 @@ Polynomial FMatrix::pdet(int r1, int r2) const
         return util::poly_interpolation(gamma, delta);
     }
 
-    Packed_FMatrix PA(this->n);
+    Packed_FMatrix PA(this->get_n());
 
-    for (int i = 0; i < 2*this->n - 1; i++)
+    for (int i = 0; i < 2*this->get_n() - 1; i++)
     {
         PA.init(*this);
         PA.mul_gamma(r1, r2, gamma[i]);
@@ -127,17 +112,6 @@ Polynomial FMatrix::pdet(int r1, int r2) const
 
 }
 
-<<<<<<< HEAD
-/* copy valarray instead?? */
-void FMatrix::copy(const FMatrix &A)
-{
-    for (int row = 0; row < this->n; row++)
-        for (int col = 0; col < this->n; col++)
-            this->m[row*n + col] = A(row,col);
-}
-
-=======
->>>>>>> 0f7b10e (add matrix.hh. matrix tests fail)
 GF_element FMatrix::pcc(const GF_element &e) const
 {
     EMatrix E = this->mul_diag(e).lift();

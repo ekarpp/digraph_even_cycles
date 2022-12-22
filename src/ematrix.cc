@@ -113,6 +113,7 @@ GR_element EMatrix::row_op_per(int i1, int j)
 {
     GR_element acc = util::GR_zero();
     const GR_element sigma = this->operator()(i1, j);
+    EMatrix mpp(this->get_n());
     for (int i2 = 0; i2 < this->get_n(); i2++)
     {
         if (i2 == i1)
@@ -123,7 +124,7 @@ GR_element EMatrix::row_op_per(int i1, int j)
             const GR_element t = util::tau(sigma, v);
 
             /* M'' in the paper. Modify this as M' */
-            EMatrix mpp = this->copy<EMatrix>();
+            mpp.copy(*this);
 
             this->row_op(i2, i1, t);
             for (int col = 0; col < this->get_n(); col++)
