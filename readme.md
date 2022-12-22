@@ -12,7 +12,7 @@ git clone --recurse-submodules https://github.com/ekarpp/digraph_shortest_even_c
 ```
 Run `make` to build everything or alternatively `make help` for other options. Requires `g++` and x86-64 microarchitecture with support for `PCLMULQDQ`, `BMI2`, and `AVX2` instruction set extensions.
 
-Only mandatory argument to the algorithm binary, namely `digraph`, is `-f <path to graph file>`. It requires a file where line $i$ in the file (starting from zero) lists zero or more numbers separated with a space. Each number corresponds to an endpoint of an arc starting from vertex $i$. Some example files can be found in `graphs` folder.
+Only mandatory argument to the algorithm binary, namely `digraph`, is `-f <path to graph file>`. It requires a file where line $i$ in the file (starting from zero) lists zero or more numbers separated with a space. Each number corresponds to an endpoint of an arc starting from vertex $i$. Some example files and graph generators can be found in `graphs` folder.
 
 In addition to the implementation of the algorithm, this repository provides:
 - Unit testing software, `digraph-tests` binary
