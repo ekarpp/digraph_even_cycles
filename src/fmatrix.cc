@@ -93,24 +93,29 @@ Polynomial FMatrix::pdet(int r1, int r2) const
     vector<GF_element> gamma = util::distinct_elements(2*this->n - 1);
     vector<GF_element> delta(2*this->n - 1);
 
-    for (int i = 0; i < 2*this->n - 1; i++)
+    if (global::F->get_n() != 16)
     {
-        if (global::F->get_n() == 16)
-        {
-            Packed_FMatrix PA(*this);
-            PA.mul_gamma(r1, r2, gamma[i]);
-            delta[i] = PA.det();
-        }
-        else
+        for (int i = 0; i < 2*this->n - 1; i++)
         {
             FMatrix A = this->copy();
             A.mul_gamma(r1, r2, gamma[i]);
             delta[i] = A.det();
         }
+        /* la grange */
+        return util::poly_interpolation(gamma, delta);
     }
 
-    /* la grange */
+    Packed_FMatrix PA(this->n);
+
+    for (int i = 0; i < 2*this->n - 1; i++)
+    {
+        PA.init(*this);
+        PA.mul_gamma(r1, r2, gamma[i]);
+        delta[i] = PA.det();
+    }
+
     return util::poly_interpolation(gamma, delta);
+
 }
 
 FMatrix FMatrix::copy() const

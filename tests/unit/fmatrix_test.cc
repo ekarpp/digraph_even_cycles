@@ -199,10 +199,13 @@ void FMatrix_test::test_packed_determinant()
 {
     cout << "determinant on packed matrices: ";
     int err = 0;
+
+    Packed_FMatrix PA(this->dim);
     for (int t = 0; t < this->tests; t++)
     {
         FMatrix m = this->random();
-        GF_element pack = Packed_FMatrix(m).det();
+        PA.init(m);
+        GF_element pack = PA.det();
         GF_element ref = m.det();
 
         if (pack != ref)
@@ -215,6 +218,8 @@ void FMatrix_test::test_packed_determinant_singular()
 {
     cout << "determinant on packed singular matrices: ";
     int err = 0;
+
+    Packed_FMatrix PA(this->dim);
     for (int t = 0; t < this->tests; t++)
     {
         FMatrix m = this->random();
@@ -227,7 +232,8 @@ void FMatrix_test::test_packed_determinant_singular()
         for (int col = 0; col < this->dim; col++)
             m.set(r1, col, m(r2, col));
 
-        GF_element pack = Packed_FMatrix(m).det();
+        PA.init(m);
+        GF_element pack = PA.det();
         GF_element ref = m.det();
 
         if (pack != ref)
@@ -240,6 +246,8 @@ void FMatrix_test::test_packed_gamma_mul()
 {
     cout << "packed gamma mul: ";
     int err = 0;
+
+    Packed_FMatrix PA(this->dim);
     for (int t = 0; t < this->tests; t++)
     {
         GF_element gamma = util::GF_random();
@@ -248,9 +256,8 @@ void FMatrix_test::test_packed_gamma_mul()
         while (r1 == r2)
             r2 = global::randgen() % this->dim;
 
-        FMatrix orig = this->random();
-        FMatrix A = orig.copy();
-        Packed_FMatrix PA(A);
+        FMatrix A = this->random();
+        PA.init(A);
 
         A.mul_gamma(r1, r2, gamma);
         PA.mul_gamma(r1, r2, gamma);
@@ -266,10 +273,11 @@ void FMatrix_test::test_packed_init()
 
     cout << "packed matrix init: ";
     int err = 0;
+    Packed_FMatrix PA(this->dim);
     for (int t = 0; t < this->tests; t++)
     {
         FMatrix A = this->random();
-        Packed_FMatrix PA(A);
+        PA.init(A);
 
         if (A != PA.unpack())
             err++;
