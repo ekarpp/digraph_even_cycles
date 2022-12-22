@@ -21,7 +21,8 @@ private:
     int cols;
     // original matrix n moduloe VECTOR_N
     int nmod;
-    std::vector<long4_t> m;
+    //std::vector<long4_t> m;
+    long4_t *m;
 
     const long4_t &get(const int row, const int col) const
     {
@@ -182,8 +183,8 @@ public:
             this->rows += VECTOR_N - (matrix.get_n() % VECTOR_N);
         this->cols = this->rows / VECTOR_N;
 
-        this->m.resize(this->rows * this->cols);
-
+        //this->m.resize(this->rows * this->cols);
+        this->m = (long4_t *) malloc(this->rows * this->cols * sizeof(long4_t));
         for (int r = 0; r < matrix.get_n(); r++)
         {
             for (int c = 0; c < matrix.get_n() / VECTOR_N; c++)
@@ -378,6 +379,7 @@ public:
                 || det_loop<6>(col, det) || det_loop<7>(col, det))
                 break;
         }
+        free(this->m);
         return GF_element(det);
     }
 
