@@ -81,9 +81,8 @@ private:
     template <int index>
     bool det_loop(int col, uint64_t &det)
     {
-        int r0 = VECTOR_N*col + index;
-        long4_t mx;
-        int mxi = -1;
+        const int r0 = VECTOR_N*col + index;
+        int piv_idx = -1;
         long4_t cmpmsk = _mm256_set_epi64x(
             0xFFFFull << 32,
             0,
@@ -95,39 +94,38 @@ private:
         cmpmsk = _mm256_srli_si256(cmpmsk, 4*(index%4));
         for (int row = r0; row < this->rows; row++)
         {
-            char ZF = _mm256_testz_si256(
+            const char ZF = _mm256_testz_si256(
                 cmpmsk,
                 this->get(row,col)
             );
             if (ZF == 0)
             {
-                mx = this->get(row,col);
-                mxi = row;
+                piv_idx = row;
                 break;
             }
         }
-        if (mxi == -1)
+        if (piv_idx == -1)
         {
             det = 0x0;
             return true;
         }
+        if (piv_idx != r0)
+            this->swap_rows(piv_idx, r0);
 
-        uint64_t mx_ext =
-            _mm256_extract_epi32(mx, VECTOR_N - 1 - index);
-        if (mxi != r0)
-            this->swap_rows(mxi, r0);
+        uint64_t pivot =
+            _mm256_extract_epi32(this->get(piv_idx, col), VECTOR_N - 1 - index);
         /* vectorize? */
         det = global::F->rem(
-            global::F->clmul(det, mx_ext)
+            global::F->clmul(det, pivot)
         );
-        mx_ext = global::F->ext_euclid(mx_ext);
-        this->mul_row(r0, mx_ext);
+        pivot = global::F->ext_euclid(pivot);
+        this->mul_row(r0, pivot);
         /* vectorize end? */
-        char mask = VECTOR_N - 1 - index;
-        long4_t idx = _mm256_set1_epi32(mask);
+        constexpr char mask = VECTOR_N - 1 - index;
+        const long4_t idx = _mm256_set1_epi32(mask);
         for (int row = r0 + 1; row < this->rows; row++)
         {
-            long4_t val = _mm256_permutevar8x32_epi32(
+            const long4_t val = _mm256_permutevar8x32_epi32(
                 this->get(row, col),
                 idx
             );
@@ -249,20 +247,18 @@ public:
         pac_gamma = global::F->wide_mul(pac_gamma, pac_gamma);
         pac_gamma = global::F->wide_mul(pac_gamma, pac_gamma);
 
-        uint64_t elems[4];
+        uint64_t elems[VECTOR_N];
         uint64_t g = 1ull;
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < VECTOR_N; i++)
         {
-            elems[i] = g << 32;
-            g = global::F->rem(global::F->clmul(g, gamma.get_repr()));
-            elems[i] |= g;
+            elems[i] = g;
             g = global::F->rem(global::F->clmul(g, gamma.get_repr()));
         }
-        long4_t prod = _mm256_set_epi64x(
-            elems[0],
-            elems[1],
-            elems[2],
-            elems[3]
+        long4_t prod = _mm256_set_epi32(
+            elems[0], elems[1],
+            elems[2], elems[3],
+            elems[4], elems[5],
+            elems[6], elems[7]
         );
         std::vector<long4_t> coeffs(this->cols);
         long4_t idx = _mm256_set_epi32(
@@ -345,7 +341,7 @@ public:
 
     inline void mul_row(int row, uint64_t v)
     {
-        long4_t pack = _mm256_set1_epi32(v);
+        const long4_t pack = _mm256_set1_epi32(v);
         for (int col = 0; col < this->cols; col++)
             this->set(row, col,
                       global::F->wide_mul(this->get(row, col), pack)
@@ -357,11 +353,11 @@ public:
     {
         for (int col = 0; col < this->cols; col++)
         {
-            long4_t tmp = global::F->wide_mul(this->get(r1, col), pack);
+            const long4_t tmp = global::F->wide_mul(this->get(r1, col), pack);
 
             this->set(r2, col,
                       _mm256_xor_si256(this->get(r2, col), tmp)
-                );
+            );
         }
     }
 
