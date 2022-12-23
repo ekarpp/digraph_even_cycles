@@ -21,7 +21,7 @@ PERF_OBJ := extension.o polynomial.o gf.o util.o
 all: $(BIN) nauty/geng nauty/directg nauty/listg
 
 clean:
-	rm -f *.o *.s *.asm1 *.asm2 $(BIN)
+	rm -f *.o *.s *.asm1 *.asm $(BIN)
 	cd nauty && git clean -xf && git checkout .
 
 help:
@@ -135,7 +135,7 @@ geng-test: digraph-tests nauty/geng nauty/directg nauty/listg
 %.asm1: %.s
 	c++filt < $^ > $@
 
-%.asm2: %.o
+%.asm: %.o
 	objdump -d -S $^ > $@
 
 
