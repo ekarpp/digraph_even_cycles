@@ -86,16 +86,16 @@ GF_element FMatrix::det()
             return util::GF_zero();
 
         if (pivot_idx != col)
-            this->swap_rows(pivot_idx, col);
+            this->swap_rows(pivot_idx, col, col);
 
         GF_element pivot = this->operator()(col, col);
         det *= pivot;
         pivot.inv_in_place();
-        this->mul_row(col, pivot);
+        this->mul_row(col, pivot, col);
 
         for (int row = col+1; row < this->get_n(); row++)
             /* create new element or do row,col last? */
-            this->row_op(col, row, GF_element(this->operator()(row,col)));
+            this->row_op(col, row, GF_element(this->operator()(row,col)), col);
     }
     return det;
 }

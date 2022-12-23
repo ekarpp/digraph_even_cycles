@@ -19,10 +19,6 @@ class FMatrix : public Matrix<GF_element>
 public:
     using Matrix::Matrix;
 
-    /* return pcc_{n-1} of the matrix we get when we
-     * multiply the diagonal of this matrix by e */
-    GF_element pcc(const GF_element &e) const;
-
     EMatrix lift() const;
 
     /* multiply diagonal by e. merge this with lift, so
@@ -42,7 +38,9 @@ public:
      * (1,r,..,r^(n-1)) and r2 by monomials (r^(n-1),..,r,1) */
     Polynomial pdet(int r1, int r2) const;
 
-
+    /* return pcc_{n-1} of the matrix we get when we
+     * multiply the diagonal of this matrix by e */
+    GF_element pcc(const GF_element &e) const;
 };
 
 #endif
