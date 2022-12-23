@@ -322,9 +322,9 @@ GR_repr GR4_16::kronecker_mul(const GR_repr &a, const GR_repr &b) const
 GR_repr GR4_n::euclid_rem(const GR_repr &a) const
 {
     GR_repr aa = a;
-    while (a.lo > this->mask || a.hi > this->mask)
+    while (aa.lo > this->mask || aa.hi > this->mask)
     {
-        int shift = std::max(util::log2(a.lo), util::log2(a.hi)) - this->n;
+        int shift = std::max(util::log2(aa.lo), util::log2(aa.hi)) - this->n;
 
         /* mod has coefficients modulo 2, thus its negation
          * is just it applied to hi and lo (see negate function)*/
