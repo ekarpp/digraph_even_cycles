@@ -28,12 +28,11 @@ FMatrix EMatrix::project() const
 GR_element EMatrix::per_m_det()
 {
     GR_element acc = util::GR_zero();
-
     /* marked rows */
     valarray<bool> rows(false, this->get_n());
     /* odd elements at (odd[i], i). if odd[i] = -1 then
      * column i has only even elements at unmarked rows */
-    vector<int> odd;
+    vector<int> odd(this->get_n());
     /* columns that have only even elements at unmarked rows */
     list<int> cols;
 
@@ -49,13 +48,13 @@ GR_element EMatrix::per_m_det()
             {
                 acc += this->row_op_per(i1, j);
                 rows[i1] = true;
-                odd.push_back(i1);
+                odd[j] = i1;
                 break;
             }
         }
         if (i1 == this->get_n())
         {
-            odd.push_back(-1);
+            odd[j] = -1;
             cols.push_front(j);
         }
     }
@@ -126,7 +125,7 @@ GR_element EMatrix::row_op_per(int i1, int j)
             /* M'' in the paper. Modify this as M' */
             mpp.copy(*this);
 
-            this->row_op(i2, i1, t);
+            this->row_op(i1, i2, t);
             for (int col = 0; col < this->get_n(); col++)
                 mpp.set(i2, col, t * this->operator()(i1, col));
 
@@ -135,8 +134,7 @@ GR_element EMatrix::row_op_per(int i1, int j)
             GF_element sum = util::GF_zero();
             for (int i = 0; i < this->get_n() - 1; i++)
                 sum += p[i];
-            GR_element per = sum.lift() + sum.lift();
-            acc += per;
+            acc += sum.lift() + sum.lift();
         }
     }
     return acc;
