@@ -12,7 +12,7 @@ using namespace std;
 
 /* returns the length of the shortest even cycle in G.
  * if no even cycle exists, returns -1 */
-int Solver::shortest_even_cycle(Graph G)
+int Solver::shortest_even_cycle(Graph &G) const
 {
     vector<GF_element> gamma = util::distinct_elements(G.get_n() + 1);
     vector<GF_element> delta(G.get_n() + 1);
@@ -25,7 +25,7 @@ int Solver::shortest_even_cycle(Graph G)
             cout << l+1 << "/" << G.get_n()+1 << endl;
     }
 
-    Polynomial p = util::poly_interpolation(gamma, delta);
+    const Polynomial p = util::poly_interpolation(gamma, delta);
 
     for (int k = 2; k <= G.get_n(); k += 2)
         if (p[G.get_n() - k] != util::GF_zero())
@@ -38,7 +38,7 @@ int Solver::shortest_even_cycle(Graph G)
  * shortest even cycle in G. returns the length
  * of the shortest even cycle or -1 if no such
  * cycle exists */
-int Solver::shortest_even_cycle_brute(Graph G)
+int Solver::shortest_even_cycle_brute(const Graph &G) const
 {
     int len = G.get_n() + 1;
 

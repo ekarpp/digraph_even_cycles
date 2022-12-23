@@ -43,15 +43,15 @@ GR4_n::GR4_n(const int e, const uint64_t g): n(e), mod(g)
 void GR4_n::init_varying_size()
 {
     /* "intel rem" distributive law optimization */
-    GR_repr q_plus_repr =
+    const GR_repr q_plus_repr =
         this->quo({0, 1ull << (2*this->n)} , { 0, this->mod });
     for (int i = 0; i < this->n + 1; i++)
     {
         if (((this->mod >> i) & 1) && i < this->n)
             this->mod_ast.push_back(i);
 
-        char qphi = (q_plus_repr.hi >> i) & 1;
-        char qplo = (q_plus_repr.lo >> i) & 1;
+        const char qphi = (q_plus_repr.hi >> i) & 1;
+        const char qplo = (q_plus_repr.lo >> i) & 1;
         if (qphi || qplo)
         {
             this->q_plus.push_back(i);
@@ -72,15 +72,16 @@ void GR4_n::init_varying_size()
     this->r_squared = this->rem(this->r_squared);
 
     // deg == n
-    GR_repr r = { 0x0, 1ull << this->n };
-    int N = 1 << this->n;
-    N -= 1;
-    N *= 2;
+    const GR_repr r = { 0x0, 1ull << this->n };
 
     // deg <= n-1
     GR_repr r_rem = this->rem(r);
     GR_repr r_prime = r_rem;
 
+    /* cleanup N ?? */
+    int N = 1 << this->n;
+    N -= 1;
+    N *= 2;
     N--;
     long idx = 1ll << (util::log2(N) - 1);
     while (idx > 1)
@@ -98,16 +99,16 @@ void GR4_n::init_varying_size()
 
 /* euclidean division, only used once during initialization.
  * b has to be monic for this to work */
-GR_repr GR4_n::quo(GR_repr a, GR_repr b) const
+GR_repr GR4_n::quo(GR_repr a, const GR_repr b) const
 {
     GR_repr q = { 0, 0 };
     int dega = std::max(util::log2(a.lo), util::log2(a.hi));
-    int degb = std::max(util::log2(b.lo), util::log2(b.hi));
+    const int degb = std::max(util::log2(b.lo), util::log2(b.hi));
 
     while (dega >= degb)
     {
 
-        GR_repr s = {
+        const GR_repr s = {
             (a.hi & (1ll << dega)) >> degb,
             (a.lo & (1ll << dega)) >> degb
         };
@@ -121,7 +122,7 @@ GR_repr GR4_n::quo(GR_repr a, GR_repr b) const
     return q;
 }
 
-GR_repr GR4_n::ref_mul(GR_repr a, GR_repr b) const
+GR_repr GR4_n::ref_mul(const GR_repr &a, const GR_repr &b) const
 {
     GR_repr c = { 0, 0 };
 
@@ -134,26 +135,25 @@ GR_repr GR4_n::ref_mul(GR_repr a, GR_repr b) const
             tmp.lo = this->mask;
 
         /* 2 bit carryless multiplier */
-        GR_repr aib = this->mul_const(b, tmp);
+        const GR_repr aib = this->mul_const(b, tmp) << i;
 
-        aib <<= i;
         c = global::E->add(c, aib);
     }
 
     return c;
 }
 
-GR_repr GR4_n::fast_mul(GR_repr a, GR_repr b) const
+GR_repr GR4_n::fast_mul(const GR_repr &a, const GR_repr &b) const
 {
     /* clean this up */
-    __m128i aa = _mm_set_epi64x(a.hi, a.lo);
-    __m128i bb = _mm_set_epi64x(b.hi, b.lo);
+    const __m128i aa = _mm_set_epi64x(a.hi, a.lo);
+    const __m128i bb = _mm_set_epi64x(b.hi, b.lo);
 
-    __m128i alobhi = _mm_clmulepi64_si128(aa, bb, 0x01);
-    __m128i ahiblo = _mm_clmulepi64_si128(aa, bb, 0x10);
+    const __m128i alobhi = _mm_clmulepi64_si128(aa, bb, 0x01);
+    const __m128i ahiblo = _mm_clmulepi64_si128(aa, bb, 0x10);
 
-    uint64_t hi1 = _mm_extract_epi64(ahiblo, 0x0);
-    uint64_t hi2 = _mm_extract_epi64(alobhi, 0x0);
+    const uint64_t hi1 = _mm_extract_epi64(ahiblo, 0x0);
+    const uint64_t hi2 = _mm_extract_epi64(alobhi, 0x0);
 
     uint64_t hi = 0;
     uint64_t lo = 0;
@@ -172,18 +172,18 @@ GR_repr GR4_n::fast_mul(GR_repr a, GR_repr b) const
     return { hi1 ^ hi2 ^ hi, lo };
 }
 
-GR_repr GR4_n::kronecker_mul(GR_repr a, GR_repr b) const
+GR_repr GR4_n::kronecker_mul(const GR_repr &a, const GR_repr &b) const
 {
     /* we use different representation of polynomials than before here.
      * each bit string can be split to sets of 2 bits where each set
      * corresponds to a coefficient modulo 4. */
-    kronecker_form aa = this->kronecker_substitution(a);
-    kronecker_form bb = this->kronecker_substitution(b);
+    const kronecker_form aa = this->kronecker_substitution(a);
+    const kronecker_form bb = this->kronecker_substitution(b);
 
-    uint512_t ahbh = bit::mul_256bit(aa.big, bb.big);
-    uint512_t ahbl = bit::mul_256bit_64bit(aa.big, bb.small);
-    uint512_t albh = bit::mul_256bit_64bit(bb.big, aa.small);
-    uint64_t albl = aa.small * bb.small;
+    const uint512_t ahbh = bit::mul_256bit(aa.big, bb.big);
+    const uint512_t ahbl = bit::mul_256bit_64bit(aa.big, bb.small);
+    const uint512_t albh = bit::mul_256bit_64bit(bb.big, aa.small);
+    const uint64_t albl = aa.small * bb.small;
 
     uint576_t prod = bit::add_576bit(
         bit::widen_512bits(ahbh),
@@ -213,7 +213,7 @@ GR_repr GR4_n::kronecker_mul(GR_repr a, GR_repr b) const
     uint64_t tmp[3];
     tmp[0] = 0; tmp[1] = 0; tmp[2] = 0;
 
-    uint64_t extmask = 0x00C06030180C0603ull;
+    const uint64_t extmask = 0x00C06030180C0603ull;
     for (int i = 0; i < 4; i++)
         tmp[0] |= _pext_u64(prod.words[i], extmask) << (14*i);
 
@@ -222,10 +222,9 @@ GR_repr GR4_n::kronecker_mul(GR_repr a, GR_repr b) const
 
     tmp[2] = _pext_u64(prod.words[8], extmask);
 
-    uint64_t hiextmask = 0xAAAAAAAAAAAAAAAAull;
-    uint64_t loextmask = 0x5555555555555555ull;
-    GR_repr ret;
-    ret.hi = 0; ret.lo = 0;
+    const uint64_t hiextmask = 0xAAAAAAAAAAAAAAAAull;
+    const uint64_t loextmask = 0x5555555555555555ull;
+    GR_repr ret = { 0, 0 };
     for (int i = 0; i < 3; i++)
     {
         ret.hi |= _pext_u64(tmp[i], hiextmask) << (28*i);
@@ -234,14 +233,14 @@ GR_repr GR4_n::kronecker_mul(GR_repr a, GR_repr b) const
     return ret;
 }
 
-kronecker_form GR4_n::kronecker_substitution(GR_repr x) const
+kronecker_form GR4_n::kronecker_substitution(const GR_repr &x) const
 {
     /* combine lo and hi to single uint64_t
      * where 2 bits represent single coefficient.
      * the "more traditional" bit representation for polynomials */
-    uint64_t extmask = 0x5555555555555555ull;
-    uint64_t comb = _pdep_u64(x.lo, extmask);
-    comb |= _pdep_u64(x.hi, extmask << 1);
+    const uint64_t comb_mask = 0x5555555555555555ull;
+    const uint64_t comb = _pdep_u64(x.lo, comb_mask)
+        | _pdep_u64(x.hi, comb_mask << 1);
 
     /* contains the "polynomial" after kronecker substitution. */
     kronecker_form kron;
@@ -250,7 +249,7 @@ kronecker_form GR4_n::kronecker_substitution(GR_repr x) const
      * we have <= 32 coefficients. */
 
     /* mask has 2x ones 7x zeros repeating */
-    extmask = 0x00C06030180C0603ull;
+    const uint64_t extmask = 0x00C06030180C0603ull;
     for (int i = 0; i < 4; i++)
         kron.big.words[i] = _pdep_u64((comb >> (i*14)) & 0x3FFF, extmask);
 
@@ -270,49 +269,49 @@ kronecker_form GR4_n::kronecker_substitution(GR_repr x) const
 }
 
 
-kronecker_form GR4_16::kronecker_substitution(GR_repr x) const
+kronecker_form GR4_16::kronecker_substitution(const GR_repr &x) const
 {
     /* combine lo and hi to single uint64_t
      * where 2 bits represent single coefficient.
      * the "more traditional" bit representation for polynomials */
-    uint64_t extmask = 0x5555555555555555ull;
-    uint64_t comb = _pdep_u64(x.lo, extmask);
-    comb |= _pdep_u64(x.hi, extmask << 1);
+    const uint64_t comb_mask = 0x5555555555555555ull;
+    const uint64_t comb = _pdep_u64(x.lo, comb_mask)
+        | _pdep_u64(x.hi, comb_mask << 1);
 
     /* contains the "polynomial" after kronecker substitution.
      * for us it is sufficient that each coefficient has 8 bits,
      * (see details in thesis) thus we need 16*8 = 128 bits
      * for the polynomial after substitution. */
     kronecker_form kron;
-    extmask = 0x0303030303030303ull;
+    const uint64_t extmask = 0x0303030303030303ull;
     kron.b16.words[0] = _pdep_u64(comb & 0xFFFF, extmask);
     kron.b16.words[1] = _pdep_u64(comb >> 16, extmask);
     return kron;
 }
 
-GR_repr GR4_16::kronecker_mul(GR_repr a, GR_repr b) const
+GR_repr GR4_16::kronecker_mul(const GR_repr &a, const GR_repr &b) const
 {
 
     /* we use different representation of polynomials than before here.
      * each bit string can be split to sets of 2 bits where each set
      * corresponds to a coefficient modulo 4. */
-    kronecker_form aa = this->kronecker_substitution(a);
-    kronecker_form bb = this->kronecker_substitution(b);
+    const kronecker_form aa = this->kronecker_substitution(a);
+    const kronecker_form bb = this->kronecker_substitution(b);
 
-    uint256_t prod = bit::mul_128bit(aa.b16, bb.b16);
+    const uint256_t prod = bit::mul_128bit(aa.b16, bb.b16);
 
     /* first store the interesting bits to a uint64_t,
      * that is the first two bits of each 8 bit limb.
      * it fits, as we have deg <= 15+15 and each coefficient
      * uses two bits. */
-    uint64_t extmask = 0x0303030303030303ull;
+    const uint64_t extmask = 0x0303030303030303ull;
     uint64_t tmp = 0;
     for (int i = 0; i < 4; i++)
         tmp |= _pext_u64(prod.words[i], extmask) << (16*i);
 
     /* extract the usual hi/lo representation */
-    uint64_t hiextmask = 0xAAAAAAAAAAAAAAAAull;
-    uint64_t loextmask = 0x5555555555555555ull;
+    const uint64_t hiextmask = 0xAAAAAAAAAAAAAAAAull;
+    const uint64_t loextmask = 0x5555555555555555ull;
     GR_repr ret;
     ret.lo = _pext_u64(tmp, loextmask);
     ret.hi = _pext_u64(tmp, hiextmask);
@@ -320,24 +319,25 @@ GR_repr GR4_16::kronecker_mul(GR_repr a, GR_repr b) const
 }
 
 
-GR_repr GR4_n::euclid_rem(GR_repr a) const
+GR_repr GR4_n::euclid_rem(const GR_repr &a) const
 {
+    GR_repr aa = a;
     while (a.lo > this->mask || a.hi > this->mask)
     {
-        int shift = std::max(util::log2(a.lo), util::log2(a.hi));
-        shift -= this->n;
+        int shift = std::max(util::log2(a.lo), util::log2(a.hi)) - this->n;
+
         /* mod has coefficients modulo 2, thus its negation
          * is just it applied to hi and lo (see negate function)*/
-        a = this->add(a, { this->mod << shift, this->mod << shift });
+        aa = this->add(aa, { this->mod << shift, this->mod << shift });
     }
-    return a;
+    return aa;
 }
 
 /* https://dl.acm.org/doi/10.1016/j.ipl.2010.04.011 */
-GR_repr GR4_n::intel_rem(GR_repr a) const
+GR_repr GR4_n::intel_rem(const GR_repr &a) const
 {
-    GR_repr hi = { a.hi >> this->n, a.lo >> this->n };
-    GR_repr lo = { a.hi & this->mask, a.lo & this->mask };
+    const GR_repr hi = { a.hi >> this->n, a.lo >> this->n };
+    const GR_repr lo = { a.hi & this->mask, a.lo & this->mask };
 
     /* deg n-2 * deg n*/
     GR_repr rem = { 0x0, 0x0 };
@@ -354,19 +354,16 @@ GR_repr GR4_n::intel_rem(GR_repr a) const
     /* deg n-1 * deg n - 2*/
     GR_repr r = { 0x0, 0x0 };
     for (uint i = 0; i < this->mod_ast.size(); i++)
-    {
-        GR_repr tmp = rem << this->mod_ast[i];
-        r = this->add(r, tmp);
-    }
+        r = this->add(r, rem << this->mod_ast[i]);
 
     r &= this->mask;
     return this->subtract(lo, r);
 }
 
-GR_repr GR4_16::intel_rem(GR_repr a) const
+GR_repr GR4_16::intel_rem(const GR_repr &a) const
 {
-    GR_repr hi = a >> 16;
-    GR_repr lo = a & 0xFFFF;
+    const GR_repr hi = a >> 16;
+    const GR_repr lo = a & 0xFFFF;
 
     GR_repr tmp = hi >> 14;
     tmp = this->add(tmp, hi >> 13);
@@ -381,10 +378,10 @@ GR_repr GR4_16::intel_rem(GR_repr a) const
     return this->subtract(lo, r);
 }
 
-GR_repr GR4_32::intel_rem(GR_repr a) const
+GR_repr GR4_32::intel_rem(const GR_repr &a) const
 {
-    GR_repr hi = a >> 32;
-    GR_repr lo = a & 0xFFFFFFFF;
+    const GR_repr hi = a >> 32;
+    const GR_repr lo = a & 0xFFFFFFFF;
 
     GR_repr tmp = hi >> 30;
     tmp = this->add(tmp, hi >> 29);
@@ -399,16 +396,14 @@ GR_repr GR4_32::intel_rem(GR_repr a) const
     return this->subtract(lo, r);
 }
 
-GR_repr GR4_n::mont_rem(GR_repr a) const
+GR_repr GR4_n::mont_rem(const GR_repr &a) const
 {
     /* n-1 deg + n-1 deg */
-    GR_repr u = this->mul(a, this->n_prime);
+    const GR_repr u = this->mul(a, this->n_prime) & this->mask;
 
-    u &= this->mask;
     /* n deg + n-1 deg */
-    GR_repr c = this->add(a, this->fast_mul(u, {0, this->mod}));
+    const GR_repr c = this->add(a, this->fast_mul(u, {0, this->mod})) >> this->n;
 
-    c >>= this->n;
     return c;
 }
 

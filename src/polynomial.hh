@@ -11,15 +11,17 @@ class Polynomial
 {
 private:
     std::vector<GF_element> coeffs;
-    int deg;
+    const int deg;
 
 public:
-    Polynomial(int n);
-    Polynomial(std::vector<GF_element> P);
+    /* be lazy and just store coefficients in vector of length n.
+     * dont care if some of the coefficients are zero */
+    Polynomial(int n): coeffs(n+1, util::GF_zero()), deg(n) {};
+    Polynomial(std::vector<GF_element> P): coeffs(P), deg(P.size() - 1) {};
 
-    void div(GF_element v);
+    void div(const GF_element &v);
 
-    Polynomial &operator*=(GF_element val);
+    Polynomial &operator*=(const GF_element &other);
 
     Polynomial &operator+=(const Polynomial &other);
 
@@ -29,13 +31,14 @@ public:
     }
 
     /* set coefficient with deg i to val */
-    void operator()(int i, GF_element val)
+    /* const & for val?? */
+    void operator()(const int i, GF_element val)
     {
         this->coeffs[i] = val;
     }
 
     /* eval at point x. only used for testing */
-    GF_element eval(GF_element x)
+    GF_element eval(const GF_element &x)
     {
         GF_element val = this->coeffs[0];
         GF_element prod = x;

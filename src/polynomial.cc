@@ -5,37 +5,26 @@
 #include "global.hh"
 
 using namespace std;
-/* be lazy and just store coefficients in vector of length n.
- * dont care if some of the coefficients are zero */
-Polynomial::Polynomial(int n): coeffs(n+1, util::GF_zero())
-{
-    this->deg = n;
-}
-
-Polynomial::Polynomial(vector<GF_element> P): coeffs(P)
-{
-    this->deg = P.size() - 1;
-}
 
 /* divides this by monomial (x + v) using synthetic division */
-void Polynomial::div(GF_element v)
+void Polynomial::div(const GF_element &v)
 {
     GF_element prev = this->coeffs[this->deg];
     this->coeffs[this->deg] = util::GF_zero();
 
     for (int i = this->deg - 1; i >= 0; i--)
     {
-        GF_element tmp = this->coeffs[i];
+        const GF_element tmp = this->coeffs[i];
         this->coeffs[i] = prev;
         prev *= v;
         prev += tmp;
     }
 }
 
-Polynomial &Polynomial::operator*=(GF_element val)
+Polynomial &Polynomial::operator*=(const GF_element &other)
 {
     for (int i = 0; i <= this->deg; i++)
-        this->coeffs[i] *= val;
+        this->coeffs[i] *= other;
 
     return *this;
 }

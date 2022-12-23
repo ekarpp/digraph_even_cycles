@@ -19,7 +19,7 @@ namespace util
             std::vector<int> nbors = adj[u];
             for (int i = 0; i < (int) nbors.size(); i++)
             {
-                int v = nbors[i];
+                const int v = nbors[i];
                 if (u > v)
                     continue;
                 /* rndom choose del */
@@ -45,11 +45,10 @@ namespace util
      * returns irreducible polynomial of degree deg
      * in Z2[x] encoded as a bitstring
      */
-    uint64_t irred_poly(int deg)
+    uint64_t irred_poly(const int deg)
     {
         // assert(deg > 2)
-        uint64_t mask = 1ll << (deg + 1);
-        mask--;
+        const uint64_t mask = (1ll << (deg + 1)) - 1;
 
         while (true)
         {
@@ -69,7 +68,7 @@ namespace util
     }
 
     /* is gcd of x^(2^i) - x and p one (in Z2[x])*/
-    bool gcd1(int i, bitset<64> p)
+    bool gcd1(const int i, const bitset<64> &p)
     {
         /* use set to represent polynomials for conveninece of
          * the methods and to save space as we have degree 2^i */
@@ -93,14 +92,14 @@ namespace util
         while (rn.size() != 0)
         {
             int64_t deg_r = *r.rbegin();
-            int64_t deg_rn = *rn.rbegin();
+            const int64_t deg_rn = *rn.rbegin();
 
             while (deg_r >= deg_rn)
             {
                 set<int64_t>::reverse_iterator it = rn.rbegin();
                 for ( ; it != rn.rend(); it++)
                 {
-                    int64_t id = *it + deg_r - deg_rn;
+                    const int64_t id = *it + deg_r - deg_rn;
                     if (r.count(id) == 1)
                         r.erase(id);
                     else

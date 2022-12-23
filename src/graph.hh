@@ -21,10 +21,10 @@ public:
     inline int get_n() const { return n; }
     inline FMatrix &get_A() { return A; }
 
-    int dfs_cycle(int start,
-                   int depth,
-                   int v,
-                   std::vector<bool> &visited,
-                   int len) const;
+    int dfs_cycle(const int start,
+                  const int depth,
+                  const int v,
+                  std::vector<bool> &visited,
+                  int len) const;
 };
 #endif

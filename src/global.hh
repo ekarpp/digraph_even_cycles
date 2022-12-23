@@ -16,7 +16,7 @@ namespace util
     public:
         rand64bit() {}
         void init(uint64_t seed) { this->gen.init(seed); }
-        uint64_t operator() () { return this->gen.next(); }
+        uint64_t operator()() { return this->gen.next(); }
     };
 }
 

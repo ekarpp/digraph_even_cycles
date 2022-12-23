@@ -32,11 +32,8 @@ void Graph::sample_adjacency()
         m[u*this->n + u] = util::GF_random();
         for (uint i = 0; i < this->adj[u].size(); i++)
         {
-            int v = this->adj[u][i];
-            GF_element w = util::GF_random();
-            while (w == util::GF_zero())
-                w = util::GF_random();
-            m[u*this->n + v] = w;
+            const int v = this->adj[u][i];
+            m[u*this->n + v] = util::GF_random();
         }
     }
 
@@ -47,9 +44,9 @@ void Graph::sample_adjacency()
 /* goes through all cycles that contain vertex start
  * and updates len accordingly.
  * len contains the length of the shortest found so far */
-int Graph::dfs_cycle(int start,
-                     int depth,
-                     int v,
+int Graph::dfs_cycle(const int start,
+                     const int depth,
+                     const int v,
                      vector<bool> &visited,
                      int len) const
 {

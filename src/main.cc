@@ -21,9 +21,8 @@ GF2_n *global::F;
 GR4_n *global::E;
 bool global::output = true;
 
-bool parse_file(string fname, vector<vector<int>> &graph)
+bool parse_file(const string &fname, vector<vector<int>> &graph)
 {
-    string line;
     ifstream file(fname);
 
     if (!file.is_open())
@@ -32,7 +31,7 @@ bool parse_file(string fname, vector<vector<int>> &graph)
         return false;
     }
 
-
+    string line;
     int u = 0;
     while (getline(file, line))
     {
@@ -52,7 +51,7 @@ bool parse_file(string fname, vector<vector<int>> &graph)
     return true;
 }
 
-int main(int argc, char **argv)
+int main(const int argc, char **argv)
 {
     if (argc == 1)
     {
@@ -161,16 +160,16 @@ int main(int argc, char **argv)
     Graph G(graph);
     Solver s;
 
-    double start = omp_get_wtime();
-    int k = (brute)
+    const double start = omp_get_wtime();
+    const int k = (brute)
         ? s.shortest_even_cycle_brute(G)
         : s.shortest_even_cycle(G);
-    double end = omp_get_wtime();
+    const double end = omp_get_wtime();
 
     cout << k << endl;
 
     if (duration) {
-        double delta = end - start;
+        const double delta = end - start;
         cout << "computed graph of " << G.get_n() << " vertices in ";
         cout << delta << " seconds." << endl;
     }

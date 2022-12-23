@@ -35,28 +35,28 @@ struct uint576_t
 namespace bit
 {
 
-    inline uint256_t add_256bit(uint256_t a, uint256_t b)
+    inline uint256_t add_256bit(const uint256_t &a, const uint256_t &b)
     {
         uint256_t sum;
         ADD_WORDS(4);
         return sum;
     }
 
-    inline uint512_t add_512bit(uint512_t a, uint512_t b)
+    inline uint512_t add_512bit(const uint512_t &a, const uint512_t &b)
     {
         uint512_t sum;
         ADD_WORDS(8);
         return sum;
     }
 
-    inline uint576_t add_576bit(uint576_t a, uint576_t b)
+    inline uint576_t add_576bit(const uint576_t &a, const uint576_t &b)
     {
         uint576_t sum;
         ADD_WORDS(9);
         return sum;
     }
 
-    inline uint576_t pad_words(uint512_t a, int n)
+    inline uint576_t pad_words(const uint512_t &a, const int n)
     {
         uint576_t padded;
         for (int i = 0; i < n; i++)
@@ -68,7 +68,7 @@ namespace bit
         return padded;
     }
 
-    inline uint576_t widen_512bits(uint512_t a)
+    inline uint576_t widen_512bits(const uint512_t &a)
     {
         uint576_t wide;
         for (int i = 0; i < 8; i++)
@@ -80,7 +80,7 @@ namespace bit
     }
 
     /* pos <= 64 */
-    inline uint576_t lshift_512bit(uint512_t a, int pos)
+    inline uint576_t lshift_512bit(const uint512_t &a, const int pos)
     {
         uint576_t shift;
         shift.words[0] = a.words[0] << pos;
@@ -93,7 +93,9 @@ namespace bit
         return shift;
     }
 
-    inline char add_128bit_carry(uint128_t a, uint128_t b, unsigned long long *sum)
+    inline char add_128bit_carry(
+        const uint128_t &a, const uint128_t &b,
+        unsigned long long *sum)
     {
         char carry = 0;
         carry = _addcarry_u64(carry, a.words[0], b.words[0], sum);
@@ -101,7 +103,7 @@ namespace bit
         return carry;
     }
 
-    inline uint256_t mul_128bit(uint128_t a, uint128_t b)
+    inline uint256_t mul_128bit(const uint128_t &a, const uint128_t &b)
     {
         uint256_t prod;
         prod.words[0] = _mulx_u64(a.words[0], b.words[0], prod.words + 1);
@@ -123,7 +125,7 @@ namespace bit
         return prod;
     }
 
-    inline uint512_t mul_256bit_64bit(uint256_t a, uint64_t b)
+    inline uint512_t mul_256bit_64bit(const uint256_t &a, const uint64_t &b)
     {
         /*
           (a0 +  a1 x^64  + a2 x^128 + a3 x^192)b =
@@ -146,21 +148,21 @@ namespace bit
         return add_512bit(prod_even, prod_odd);
     }
 
-    inline uint512_t mul_256bit(uint256_t a, uint256_t b)
+    inline uint512_t mul_256bit(const uint256_t &a, const uint256_t &b)
     {
-        uint256_t ahbh = bit::mul_128bit(
+        const uint256_t ahbh = bit::mul_128bit(
             { a.words[2], a.words[3] },
             { b.words[2], b.words[3] }
         );
-        uint256_t ahbl = bit::mul_128bit(
+        const uint256_t ahbl = bit::mul_128bit(
             { a.words[2], a.words[3] },
             { b.words[0], b.words[1] }
         );
-        uint256_t albh = bit::mul_128bit(
+        const uint256_t albh = bit::mul_128bit(
             { a.words[0], a.words[1] },
             { b.words[2], b.words[3] }
         );
-        uint256_t albl = bit::mul_128bit(
+        const uint256_t albl = bit::mul_128bit(
             { a.words[0], a.words[1] },
             { b.words[0], b.words[1] }
         );

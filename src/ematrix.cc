@@ -73,7 +73,7 @@ GR_element EMatrix::per_m_det()
                 if (!rows[row])
                     break;
             /* unmarked column */
-            int col = cols.front();
+            const int col = cols.front();
             odd[col] = row;
         }
 
@@ -85,7 +85,7 @@ GR_element EMatrix::per_m_det()
         GR_element per = util::GR_one();
         for (int col = 0; col < (int) odd.size(); col++)
         {
-            int row = odd[col];
+            const int row = odd[col];
             per *= this->operator()(row, col);
             /* works? */
             if (row != col)
@@ -108,7 +108,7 @@ GR_element EMatrix::per_m_det()
 
 /* make all elements in row j even except for (i1,j)
  * return accumulator */
-GR_element EMatrix::row_op_per(int i1, int j)
+GR_element EMatrix::row_op_per(const int i1, const int j)
 {
     GR_element acc = util::GR_zero();
     const GR_element sigma = this->operator()(i1, j);

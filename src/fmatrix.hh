@@ -30,6 +30,10 @@ public:
      * called after this */
     FMatrix mul_diag(const GF_element &e) const;
 
+    void mul_gamma(const int r1, const int r2, const GF_element &gamma);
+
+    void swap_rows(const int r1, const int r2, const int idx = 0);
+
     /* uses gaussian elimination with pivoting.
      * modifies the object it is called on. */
     GF_element det();
@@ -38,28 +42,7 @@ public:
      * (1,r,..,r^(n-1)) and r2 by monomials (r^(n-1),..,r,1) */
     Polynomial pdet(int r1, int r2) const;
 
-    inline void mul_gamma(int r1, int r2, const GF_element &gamma)
-    {
-        GF_element prod = gamma;
-        for (int col = 1; col < this->get_n(); col++)
-        {
-            this->mul(r1, col, prod);
-            this->mul(r2, this->get_n() - 1 - col, prod);
-            prod *= gamma;
-        }
-    }
 
-    /* swap rows r1 and r2 starting from column idx */
-    inline void swap_rows(int r1, int r2, int idx = 0)
-    {
-        GF_element tmp;
-        for (int col = idx; col < this->get_n(); col++)
-        {
-            tmp = this->operator()(r1, col);
-            this->set(r1, col, this->operator()(r2,col));
-            this->set(r2, col, tmp);
-        }
-    }
 };
 
 #endif

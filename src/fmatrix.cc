@@ -41,6 +41,28 @@ FMatrix FMatrix::mul_diag(const GF_element &e) const
     return FMatrix(this->get_n(), m);
 }
 
+void FMatrix::mul_gamma(const int r1, const int r2, const GF_element &gamma)
+{
+    GF_element prod = gamma;
+    for (int col = 1; col < this->get_n(); col++)
+    {
+        this->mul(r1, col, prod);
+        this->mul(r2, this->get_n() - 1 - col, prod);
+        prod *= gamma;
+    }
+}
+
+/* swap rows r1 and r2 starting from column idx */
+void FMatrix::swap_rows(const int r1, const int r2, const int idx)
+{
+    for (int col = idx; col < this->get_n(); col++)
+    {
+        const GF_element tmp = this->operator()(r1, col);
+        this->set(r1, col, this->operator()(r2,col));
+        this->set(r2, col, tmp);
+    }
+}
+
 /* simple gaussian elimination with pivoting.
  * we are in characteristic two so pivoting does
  * not affect the determinant. */
@@ -80,10 +102,10 @@ GF_element FMatrix::det()
 
 /* uses random sampling and la grange interpolation
  * to get the polynomial determinant. */
-Polynomial FMatrix::pdet(int r1, int r2) const
+Polynomial FMatrix::pdet(const int r1, const int r2) const
 {
     /* determinant has deg <= 2*n - 2 */
-    vector<GF_element> gamma = util::distinct_elements(2*this->get_n() - 1);
+    const vector<GF_element> gamma = util::distinct_elements(2*this->get_n() - 1);
     vector<GF_element> delta(2*this->get_n() - 1);
 
     if (global::F->get_n() != 16)
@@ -116,6 +138,6 @@ Polynomial FMatrix::pdet(int r1, int r2) const
 GF_element FMatrix::pcc(const GF_element &e) const
 {
     EMatrix E = this->mul_diag(e).lift();
-    GR_element elem = E.per_m_det();
+    const GR_element elem = E.per_m_det();
     return elem.div2().project();
 }

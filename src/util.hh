@@ -10,7 +10,7 @@
 
 namespace util
 {
-    inline int log2(uint64_t a)
+    inline int log2(const uint64_t a)
     {
         return 63 - __builtin_clzl(a);
     }
@@ -20,7 +20,7 @@ namespace util
      * with direction chosen uniformly at random. */
     void direct_undirected(std::vector<std::vector<int>> &adj);
 
-    uint64_t irred_poly(int deg);
-    bool gcd1(int i, std::bitset<64> p);
+    uint64_t irred_poly(const int deg);
+    bool gcd1(const int i, const std::bitset<64> &p);
 }
 #endif

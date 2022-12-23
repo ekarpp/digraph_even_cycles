@@ -9,9 +9,9 @@ class Solver
 public:
     Solver() {}
 
-    int shortest_even_cycle(Graph G);
+    int shortest_even_cycle(Graph &G) const;
 
-    int shortest_even_cycle_brute(Graph G);
+    int shortest_even_cycle_brute(const Graph &G) const;
 };
 
 #endif

@@ -84,6 +84,7 @@ private:
     {
         const int r0 = VECTOR_N*col + index;
         int piv_idx = -1;
+        /* optimize */
         long4_t cmpmsk = _mm256_set_epi64x(
             0xFFFFull << 32,
             0,
@@ -139,9 +140,10 @@ private:
         return false;
     }
 
-    inline void swap_rows(const int r1, const int r2, const int col0)
+    /* starting from column idx */
+    inline void swap_rows(const int r1, const int r2, const int idx)
     {
-        for (int col = col0; col < this->cols; col++)
+        for (int col = idx; col < this->cols; col++)
         {
             const long4_t tmp = this->get(r1, col);
             this->set(r1, col, this->get(r2, col));
@@ -149,22 +151,23 @@ private:
         }
     }
 
-    inline void mul_row(const int row, const int col0, const long4_t &pack)
+    /* starting from column idx */
+    inline void mul_row(const int row, const int idx, const long4_t &pack)
     {
-        for (int col = col0; col < this->cols; col++)
+        for (int col = idx; col < this->cols; col++)
             this->set(row, col,
                       global::F->wide_mul(this->get(row, col), pack)
                 );
     }
 
-    /* subtract v times r1 from r2 */
+    /* subtract v times r1 from r2, starting from column idx */
     inline void row_op(const int r1,
                        const int r2,
-                       const int col0,
+                       const int idx,
                        const long4_t &pack
     )
     {
-        for (int col = col0; col < this->cols; col++)
+        for (int col = idx; col < this->cols; col++)
         {
             const long4_t tmp = global::F->wide_mul(this->get(r1, col), pack);
 
@@ -277,7 +280,7 @@ public:
         }
     }
 
-    void mul_gamma(int r1, int r2, const GF_element &gamma)
+    void mul_gamma(const int r1, const int r2, const GF_element &gamma)
     {
         /* here we do r1 first left to right and save the auxiliary gamma vectors.
          * then we permute the gamma vectors as required (note this->nmod here),
@@ -303,7 +306,8 @@ public:
             elems[6], elems[7]
         );
 
-        long4_t idx = _mm256_set_epi32(
+        /* reverse order permutation of 32 bits */
+        const long4_t idx = _mm256_set_epi32(
             0b000,
             0b001,
             0b010,
@@ -322,8 +326,7 @@ public:
                 prod,
                 idx
             );
-            long4_t elem = this->get(r1, col);
-            elem = global::F->wide_mul(elem, prod);
+            const long4_t elem = global::F->wide_mul(this->get(r1, col), prod);
             this->set(r1, col, elem);
 
             prod = global::F->wide_mul(prod, pac_gamma);
@@ -423,8 +426,8 @@ public:
             }
         }
 
+        const uint64_t r = this->rows;
         uint64_t n = this->rows;
-        uint64_t r = this->rows;
         if (this->nmod)
             n -= VECTOR_N - this->nmod;
         return FMatrix(n, unpacked[std::gslice(0, {n,n}, {r,1})]);

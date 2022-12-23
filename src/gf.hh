@@ -19,32 +19,34 @@ class GR_element;
 class GF2_n
 {
 private:
-    /* largest possible element in the field  + 1 */
-    uint64_t mask;
     const int n;
     const uint64_t mod;
 
+    /* largest possible element in the field  + 1 */
+    uint64_t mask;
+
+    /* for rem in GF2_n */
     uint64_t q_plus;
     uint64_t mod_ast;
 
     /* returns q s.t. for some r,
      * a = q*b + r is the division relation
      */
-    uint64_t quo(uint64_t a, uint64_t b) const;
+    uint64_t quo(uint64_t a, const uint64_t b) const;
 
 public:
     GF2_n(const int &e, const uint64_t &g);
 
-    uint64_t ext_euclid(uint64_t a) const;
+    uint64_t ext_euclid(const uint64_t a) const;
 
     /* carryless multiplication of a and b, polynomial multiplicatoin that is
      * done with Intel CLMUL
      */
-    uint64_t clmul(uint64_t a, uint64_t b) const;
+    uint64_t clmul(const uint64_t a, const uint64_t b) const;
 
-    virtual uint64_t rem(uint64_t a) const;
+    virtual uint64_t rem(const uint64_t a) const;
     // :)
-    virtual __m256i wide_mul(__m256i a, __m256i b)
+    virtual __m256i wide_mul(const __m256i &a, const __m256i &b)
     { return _mm256_or_si256(a, b); }
 
     inline int get_n() const { return this->n; }
@@ -57,9 +59,9 @@ class GF2_16 : public GF2_n
 public:
     using GF2_n::GF2_n;
 
-    __m256i wide_mul(__m256i a, __m256i b);
+    __m256i wide_mul(const __m256i &a, const __m256i &b);
 
-    uint64_t rem(uint64_t a) const;
+    uint64_t rem(const uint64_t a) const;
 };
 
 class GF2_32 : public GF2_n
@@ -67,7 +69,7 @@ class GF2_32 : public GF2_n
 public:
     using GF2_n::GF2_n;
 
-    uint64_t rem(uint64_t a) const;
+    uint64_t rem(const uint64_t a) const;
 };
 
 class GF_element
@@ -194,7 +196,7 @@ public:
 
 namespace util
 {
-    std::vector<GF_element> distinct_elements(int n);
+    std::vector<GF_element> distinct_elements(const int n);
 
     inline GF_element GF_zero()
     {

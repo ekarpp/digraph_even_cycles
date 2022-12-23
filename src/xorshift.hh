@@ -11,9 +11,9 @@ private:
     uint64_t state[2];
 
 public:
-    Xorshift() { }
+    Xorshift() {}
 
-    void init(uint64_t seed)
+    void init(const uint64_t seed)
     {
         this->state[0] = seed;
         this->state[1] = seed;

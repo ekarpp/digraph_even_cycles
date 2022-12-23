@@ -23,8 +23,7 @@ public:
      * of the paper*/
     GR_element per_m_det();
 
-    GR_element row_op_per(int i1, int j);
-
+    GR_element row_op_per(const int i1, const int j);
 };
 
 #endif

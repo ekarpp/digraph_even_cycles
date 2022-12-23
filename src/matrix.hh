@@ -53,22 +53,22 @@ public:
     }
 
     /* mul M_{r,c} with v*/
-    inline void mul(int r, int c, const T &v)
+    inline void mul(const int r, const int c, const T &v)
     {
         this->m[r*this->n + c] *= v;
     }
 
-    /* multiply row row with v */
-    inline void mul_row(int row, const T &v)
+    /* multiply row row with v, starting from column idx */
+    inline void mul_row(const int row, const T &v, const int idx = 0)
     {
-        for (int col = 0; col < this->get_n(); col++)
+        for (int col = idx; col < this->get_n(); col++)
             this->m[row*this->n + col] *= v;
     }
 
-    /* subtract v times row r1 from row r2 */
-    inline void row_op(int r1, int r2, const T v)
+    /* subtract v times row r1 from row r2, starting from column idx */
+    inline void row_op(const int r1, const int r2, const T &v, const int idx = 0)
     {
-        for (int col = 0; col < this->n; col++)
+        for (int col = idx; col < this->n; col++)
             this->m[r2*this->n + col] -= v * this->operator()(r1, col);
     }
 

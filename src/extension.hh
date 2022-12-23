@@ -25,7 +25,7 @@ public:
     uint64_t hi;
     uint64_t lo;
 
-    inline GR_repr &operator>>=(int n)
+    inline GR_repr &operator>>=(const int n)
     {
         this->hi >>= n;
         this->lo >>= n;
@@ -33,7 +33,7 @@ public:
         return *this;
     }
 
-    inline GR_repr &operator<<=(int n)
+    inline GR_repr &operator<<=(const int n)
     {
         this->hi <<= n;
         this->lo <<= n;
@@ -41,7 +41,7 @@ public:
         return *this;
     }
 
-    inline GR_repr &operator&=(uint64_t m)
+    inline GR_repr &operator&=(const uint64_t m)
     {
         this->hi &= m;
         this->lo &= m;
@@ -49,22 +49,22 @@ public:
         return *this;
     }
 
-    inline GR_repr operator>>(int n)
+    inline GR_repr operator>>(const int n) const
     {
         return { this->hi >> n, this->lo >> n };
     }
 
-    inline GR_repr operator<<(int n)
+    inline GR_repr operator<<(const int n) const
     {
         return { this->hi << n, this->lo << n };
     }
 
-    inline GR_repr operator&(uint64_t m)
+    inline GR_repr operator&(const uint64_t m) const
     {
         return { this->hi & m, this->lo & m };
     }
 
-    inline GR_repr shiftr_and(int n, uint64_t m)
+    inline GR_repr shiftr_and(const int n, const uint64_t m) const
     {
         return {
             (this->hi >> n) & m,
@@ -110,13 +110,13 @@ private:
 public:
     GR4_n(const int e, const uint64_t g);
 
-    inline GR_repr add(GR_repr a, GR_repr b) const
+    inline GR_repr add(const GR_repr &a, const GR_repr &b) const
     {
-        uint64_t carry = a.lo & b.lo;
+        const uint64_t carry = a.lo & b.lo;
         return { carry ^ a.hi ^ b.hi, a.lo ^ b.lo };
     }
 
-    inline GR_repr negate(GR_repr a) const
+    inline GR_repr negate(const GR_repr &a) const
     {
         return {
             a.lo ^ a.hi,
@@ -124,12 +124,12 @@ public:
         };
     }
 
-    inline GR_repr subtract(GR_repr a, GR_repr b) const
+    inline GR_repr subtract(const GR_repr &a, const GR_repr &b) const
     {
         return this->add(a, this->negate(b));
     }
 
-    inline GR_repr mul_const(GR_repr a, GR_repr c) const
+    inline GR_repr mul_const(const GR_repr &a, const GR_repr &c) const
     {
         return {
             (a.hi & c.lo) ^ (a.lo & c.hi),
@@ -137,33 +137,33 @@ public:
         };
     }
 
-    inline GR_repr mul(GR_repr a, GR_repr b) const
+    inline GR_repr mul(const GR_repr &a, const GR_repr &b) const
     {
         return kronecker_mul(a, b);
     }
 
-    GR_repr ref_mul(GR_repr a, GR_repr b) const;
+    GR_repr ref_mul(const GR_repr &a, const GR_repr &b) const;
 
-    GR_repr fast_mul(GR_repr a, GR_repr b) const;
+    GR_repr fast_mul(const GR_repr &a, const GR_repr &b) const;
 
-    virtual GR_repr kronecker_mul(GR_repr a, GR_repr b) const;
-    virtual kronecker_form kronecker_substitution(GR_repr x) const;
+    virtual GR_repr kronecker_mul(const GR_repr &a, const GR_repr &b) const;
+    virtual kronecker_form kronecker_substitution(const GR_repr &x) const;
 
-    inline GR_repr rem(GR_repr a) const
+    inline GR_repr rem(const GR_repr &a) const
     {
         return intel_rem(a);
     }
 
-    GR_repr euclid_rem(GR_repr a) const;
+    GR_repr euclid_rem(const GR_repr &a) const;
 
-    virtual GR_repr intel_rem(GR_repr a) const;
+    virtual GR_repr intel_rem(const GR_repr &a) const;
 
-    GR_repr mont_rem(GR_repr a) const;
-    inline GR_repr mont_form(GR_repr a) const
+    GR_repr mont_rem(const GR_repr &a) const;
+    inline GR_repr mont_form(const GR_repr &a) const
     {
         return this->mont_rem(this->mul(a, this->r_squared));
     }
-    inline GR_repr mont_reduce(GR_repr a) const
+    inline GR_repr mont_reduce(const GR_repr &a) const
     {
         return this->mont_rem(this->mul(a, { 0, 1 }));
     }
@@ -178,10 +178,10 @@ class GR4_16 : public GR4_n
 public:
     using GR4_n::GR4_n;
 
-    kronecker_form kronecker_substitution(GR_repr x) const;
-    GR_repr kronecker_mul(GR_repr a, GR_repr b) const;
+    kronecker_form kronecker_substitution(const GR_repr &x) const;
+    GR_repr kronecker_mul(const GR_repr &a, const GR_repr &b) const;
 
-    GR_repr intel_rem(GR_repr a) const;
+    GR_repr intel_rem(const GR_repr &a) const;
 };
 
 class GR4_32 : public GR4_n
@@ -189,7 +189,7 @@ class GR4_32 : public GR4_n
 public:
     using GR4_n::GR4_n;
 
-    GR_repr intel_rem(GR_repr a) const;
+    GR_repr intel_rem(const GR_repr &a) const;
 };
 
 class GR_element
@@ -295,7 +295,7 @@ public:
 
     void print() const
     {
-        for (int i = 8; i >= 0; i--)
+        for (int i = 15; i >= 0; i--)
         {
             uint64_t v = (this->repr.hi >> i) & 1;
             v <<= 1;
