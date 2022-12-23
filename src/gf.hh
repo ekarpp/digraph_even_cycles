@@ -188,7 +188,7 @@ public:
 
     void print() const
     {
-        std::cout << std::bitset<8>(this->repr) << std::endl;
+        std::cout << std::bitset<16>(this->repr) << " ";
     }
 };
 
