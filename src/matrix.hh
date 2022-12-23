@@ -66,7 +66,7 @@ public:
     }
 
     /* subtract v times row r1 from row r2 */
-    inline void row_op(int r1, int r2, const T &v)
+    inline void row_op(int r1, int r2, const T v)
     {
         for (int col = 0; col < this->n; col++)
             this->m[r2*this->n + col] -= v * this->operator()(r1, col);
@@ -81,7 +81,7 @@ public:
                 this->m[row*n + col] = other(row, col);
     }
 
-    inline void print() const
+    void print() const
     {
         for (int row = 0; row < this->n; row++)
         {

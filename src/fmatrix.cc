@@ -72,7 +72,8 @@ GF_element FMatrix::det()
         this->mul_row(col, pivot);
 
         for (int row = col+1; row < this->get_n(); row++)
-            this->row_op(col, row, this->operator()(row,col));
+            /* create new element or do row,col last? */
+            this->row_op(col, row, GF_element(this->operator()(row,col)));
     }
     return det;
 }
