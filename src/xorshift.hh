@@ -11,7 +11,7 @@ private:
     uint64_t state[2];
 
 public:
-    Xorshift() {}
+    Xorshift(): state{ 0, 0 } {}
 
     void init(const uint64_t seed)
     {

@@ -25,11 +25,11 @@ struct uint576_t
     unsigned long long words[9];
 };
 
-#define ADD_WORDS(n)                                                           \
-{                                                                              \
-    char carry = 0;                                                            \
-    for (int i = 0; i < n; i++)                                                \
-        carry = _addcarry_u64(carry, a.words[i], b.words[i], &(sum.words[i])); \
+#define ADD_WORDS(n)                                                    \
+{                                                                       \
+    char carry = 0;                                                     \
+    for (int i = 0; i < n; i++)                                         \
+        _addcarry_u64(carry, a.words[i], b.words[i], &(sum.words[i]));  \
 }
 
 namespace bit
@@ -213,7 +213,7 @@ namespace bit
 
         sum[0] = 0;
         sum[1] = 0;
-        carry = add_128bit_carry(
+        add_128bit_carry(
             { carry, 0 },
             { ahbh.words[2], ahbh.words[3] },
             sum

@@ -46,7 +46,7 @@ public:
 
     virtual uint64_t rem(const uint64_t a) const;
     // :)
-    virtual __m256i wide_mul(const __m256i &a, const __m256i &b)
+    virtual __m256i wide_mul(const __m256i &a, const __m256i &b) const
     { return _mm256_or_si256(a, b); }
 
     inline int get_n() const { return this->n; }
@@ -59,9 +59,9 @@ class GF2_16 : public GF2_n
 public:
     using GF2_n::GF2_n;
 
-    __m256i wide_mul(const __m256i &a, const __m256i &b);
+    __m256i wide_mul(const __m256i &a, const __m256i &b) const override;
 
-    uint64_t rem(const uint64_t a) const;
+    uint64_t rem(const uint64_t a) const override;
 };
 
 class GF2_32 : public GF2_n
@@ -69,7 +69,7 @@ class GF2_32 : public GF2_n
 public:
     using GF2_n::GF2_n;
 
-    uint64_t rem(const uint64_t a) const;
+    uint64_t rem(const uint64_t a) const override;
 };
 
 class GF_element
@@ -80,15 +80,9 @@ private:
 public:
     GF_element() { }
 
-    GF_element(const uint64_t n)
-    {
-        this->repr = n;
-    }
+    GF_element(const uint64_t n): repr(n) { }
 
-    GF_element(const GF_element &e)
-    {
-        this->repr = e.get_repr();
-    }
+    GF_element(const GF_element &e): repr(e.get_repr()) { }
 
     inline GF_element operator+(const GF_element &other) const
     {
@@ -142,10 +136,10 @@ public:
 
     inline GF_element &operator/=(const GF_element &other)
     {
-        const uint64_t inv = global::F->ext_euclid(other.get_repr());
+        const uint64_t inv_repr = global::F->ext_euclid(other.get_repr());
         const uint64_t prod = global::F->clmul(
             this->repr,
-            inv
+            inv_repr
             );
 
         this->repr = global::F->rem(prod);

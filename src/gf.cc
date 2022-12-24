@@ -11,7 +11,7 @@ using namespace std;
 GF2_n::GF2_n(const int &e, const uint64_t &g): n(e), mod(g)
 {
     this->mask = (1ll << this->n) - 1;
-    if (n != 16 || n != 32)
+    if (this->n != 16 && this->n != 32)
     {
         this->q_plus = this->quo(1ull << (2*this->n), mod);
         this->mod_ast = this->mask & mod;
@@ -91,7 +91,7 @@ uint64_t GF2_n::clmul(const uint64_t a, const uint64_t b) const
     return _mm_extract_epi64(prod, 0x0);
 }
 
-__m256i GF2_16::wide_mul(const __m256i &a, const __m256i &b)
+__m256i GF2_16::wide_mul(const __m256i &a, const __m256i &b) const
 {
     const __m128i prodlo = _mm_blend_epi32(
         _mm_shuffle_epi32(

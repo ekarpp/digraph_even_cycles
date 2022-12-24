@@ -174,8 +174,5 @@ int main(const int argc, char **argv)
         cout << delta << " seconds." << endl;
     }
 
-    delete global::F;
-    delete global::E;
-
     return 0;
 }

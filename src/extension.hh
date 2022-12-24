@@ -178,10 +178,10 @@ class GR4_16 : public GR4_n
 public:
     using GR4_n::GR4_n;
 
-    kronecker_form kronecker_substitution(const GR_repr &x) const;
-    GR_repr kronecker_mul(const GR_repr &a, const GR_repr &b) const;
+    kronecker_form kronecker_substitution(const GR_repr &x) const override;
+    GR_repr kronecker_mul(const GR_repr &a, const GR_repr &b) const override;
 
-    GR_repr intel_rem(const GR_repr &a) const;
+    GR_repr intel_rem(const GR_repr &a) const override;
 };
 
 class GR4_32 : public GR4_n
@@ -189,7 +189,7 @@ class GR4_32 : public GR4_n
 public:
     using GR4_n::GR4_n;
 
-    GR_repr intel_rem(const GR_repr &a) const;
+    GR_repr intel_rem(const GR_repr &a) const override;
 };
 
 class GR_element
