@@ -122,11 +122,11 @@ Polynomial FMatrix::pdet(const int r1, const int r2) const
         return util::poly_interpolation(gamma, delta);
     }
 
-    Packed_FMatrix PA(this->get_n());
+    Packed_FMatrix PA(this->get_n(), *this);
 
     for (int i = 0; i < 2*this->get_n() - 1; i++)
     {
-        PA.init(*this);
+        PA.init();
         PA.mul_gamma(r1, r2, gamma[i]);
         delta[i] = PA.det();
     }
