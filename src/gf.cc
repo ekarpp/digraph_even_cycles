@@ -115,7 +115,7 @@ uint64_t GF2_32::rem(const uint64_t a) const
 
 GR_element GF_element::lift() const
 {
-    return GR_element(this->repr, 0b0);
+    return GR_element(0x0, this->repr);
 }
 
 namespace util

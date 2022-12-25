@@ -167,7 +167,7 @@ private:
 public:
     GF_element(): repr(0) { }
 
-    GF_element(const uint64_t n): repr(n) { }
+    explicit GF_element(const uint64_t n): repr(n) { }
 
     GF_element(const GF_element &e): repr(e.get_repr()) { }
 

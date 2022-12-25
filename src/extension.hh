@@ -198,22 +198,13 @@ private:
     GR_repr repr;
 
 public:
-    GR_element() { };
+    GR_element(): repr{ 0, 0 } { };
 
-    GR_element(const uint64_t lo, const uint64_t hi)
-    {
-        this->repr = { hi, lo };
-    }
+    GR_element(const uint64_t hi, const uint64_t lo): repr{ hi, lo } { };
 
-    GR_element(const GR_repr repr)
-    {
-        this->repr = repr;
-    }
+    explicit GR_element(const GR_repr repr): repr(repr) { };
 
-    GR_element(const GR_element& e)
-    {
-        this->repr = { e.get_hi(), e.get_lo() };
-    }
+    GR_element(const GR_element& e): repr{ e.get_hi(), e.get_lo() } { };
 
     inline GR_element operator+(const GR_element &other) const
     {
@@ -272,7 +263,7 @@ public:
     /* modify instead of returning new? */
     inline GR_element div2() const
     {
-        return GR_element(this->repr.hi, 0x0);
+        return GR_element(0x0, this->repr.hi);
     }
 
     inline uint64_t get_lo() const { return this->repr.lo; }
@@ -320,7 +311,7 @@ namespace util
 
     inline GR_element GR_one()
     {
-        return GR_element(0b1, 0b0);
+        return GR_element(0b0, 0b1);
     }
 
     inline GR_element GR_random()

@@ -87,8 +87,8 @@ void GF_test::test_lift_project()
     while (i <= global::F->get_mask())
     {
         GF_element e(i);
-        GR_element b(i, global::randgen() & global::E->get_mask());
-        GR_element c(i, 0b0);
+        GR_element b(global::randgen() & global::E->get_mask(), i);
+        GR_element c(0x0, i);
         if (e.lift().project() != e
             || b.project() != e
             || e.lift() != c)

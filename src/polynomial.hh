@@ -16,8 +16,9 @@ private:
 public:
     /* be lazy and just store coefficients in vector of length n.
      * dont care if some of the coefficients are zero */
-    Polynomial(const int n): coeffs(n+1, util::GF_zero()), deg(n) {};
-    Polynomial(const std::vector<GF_element> &P): coeffs(P), deg(P.size() - 1) {};
+    explicit Polynomial(const int n): coeffs(n+1), deg(n) {};
+    explicit Polynomial(const std::vector<GF_element> &P):
+        coeffs(P), deg(P.size() - 1) {};
 
     void div(const GF_element &v);
 

@@ -178,7 +178,7 @@ private:
     }
 
 public:
-    Packed_FMatrix(const int n)
+    explicit Packed_FMatrix(const int n)
     {
         this->nmod = n % VECTOR_N;
         this->rows = n;
