@@ -24,6 +24,8 @@ public:
     GR_element per_m_det();
 
     GR_element row_op_per(const int i1, const int j);
+
+    GR_element per_similar(const int i1, const int i2);
 };
 
 #endif
