@@ -52,7 +52,6 @@ namespace util
         // assert(gamma.size() == delta.size())
         // assert(n > 2)
         int n = gamma.size();
-        Polynomial interp(n - 1);
 
         /* weights*/
         std::vector<GF_element> w(n, util::GF_one());
@@ -68,10 +67,11 @@ namespace util
         for (int j = 0; j < n; j++)
             w[j].inv_in_place();
 
-        /* main polynomial [ prod_{i} (x + gamma_i) ]*/
-        std::vector<GF_element> P(n+1, util::GF_zero());
-        P[n] = util::GF_one();
-        P[n-1] = gamma[0];
+        /* main polynomial [ prod_{i} (x + gamma_i) ]
+         * GF_element default constructs to zero. */
+        std::vector<GF_element> P(n+1);
+        P[n] += util::GF_one();
+        P[n-1] += gamma[0];
         for (int i = 1; i < n; i++)
         {
             for (int j = n - i - 1; j < n - 1; j++)
@@ -79,6 +79,7 @@ namespace util
             P[n - 1] += gamma[i];
         }
 
+        Polynomial interp(n - 1);
         for (int i = 0; i < n; i++)
         {
             Polynomial tmp(P);
