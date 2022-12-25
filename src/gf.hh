@@ -124,7 +124,7 @@ public:
                 )
             );
 
-        const __m256i rem = _mm256_xor_si256(
+        const __m256i rem_hi = _mm256_xor_si256(
             tmp,
             _mm256_xor_si256(
                 _mm256_slli_epi16(tmp, 2),
@@ -135,7 +135,7 @@ public:
                 )
             );
 
-        return _mm256_xor_si256(rem, lo);
+        return _mm256_xor_si256(rem_hi, lo);
     }
 
     inline int get_n() const { return this->n; }
@@ -165,7 +165,7 @@ private:
     uint64_t repr;
 
 public:
-    GF_element() { }
+    GF_element(): repr(0) { }
 
     GF_element(const uint64_t n): repr(n) { }
 
