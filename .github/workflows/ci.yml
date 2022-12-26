@@ -1,0 +1,19 @@
+name: digraph-tests
+
+on:
+  push:
+    branches: [ master, actions ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@v2
+    - name: build tests
+      run: make digraph-tests
+    - name: test
+      run: ./digraph-tests -n32 -efux -d20 -t10000
