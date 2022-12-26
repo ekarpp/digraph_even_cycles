@@ -9,12 +9,16 @@
 
 using namespace std;
 
+/* don't go through the whole field,
+ * do at most 2^24 tests */
+constexpr uint64_t MAX_TESTS = 0xFFFFFF;
+
 bool GF_test::test_add_inverse()
 {
     cout << "add inverse: ";
     int err = 0;
     uint64_t i = 0;
-    while (i <= global::F->get_mask())
+    while (i <= min(MAX_TESTS, global::F->get_mask()))
     {
         GF_element e(i);
         if (e + e != util::GF_zero()
@@ -29,7 +33,7 @@ bool GF_test::test_associativity()
 {
     cout << "test associativity: ";
     int err = 0;
-    for (int i = 0; i < 10000; i++)
+    for (int i = 0; i < this->tests; i++)
     {
         GF_element a = util::GF_random();
         GF_element b = util::GF_random();
@@ -45,7 +49,8 @@ bool GF_test::test_mul_id()
     cout << "mul with id: ";
     int err = 0;
     uint64_t i = 0;
-    while (i <= global::F->get_mask())
+    /* dont do more than 2^24 */
+    while (i <= min(MAX_TESTS, global::F->get_mask()))
     {
         GF_element e(i);
         if (e * util::GF_one() != e)
@@ -60,7 +65,8 @@ bool GF_test::test_mul_inverse()
     cout << "mul with inverse: ";
     int err = 0;
     uint64_t i = 1;
-    while (i <= global::F->get_mask())
+    /* dont do more than 2^24 */
+    while (i <= min(MAX_TESTS, global::F->get_mask()))
     {
         GF_element e(i);
         if (e / e != util::GF_one())
