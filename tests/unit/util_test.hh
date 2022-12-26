@@ -4,23 +4,21 @@
 
 #include "test.hh"
 
-class Util_test : Test
+class Util_test : public Test
 {
 private:
-    const int n;
+    int n;
 
     bool test_interpolation();
     bool test_log2();
 
 public:
-    Util_test(const int n, const int tests = 0): n(n)
-    {
-        if (tests)
-            this->tests = tests;
-    }
+    using Test::Test;
 
-    bool run()
+    bool run(const int deg = 0)
     {
+        if (deg)
+            this->n = deg;
         this->start_tests("util");
 
         return test_interpolation() | test_log2();

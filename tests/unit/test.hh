@@ -7,9 +7,17 @@
 class Test
 {
 private:
-    void run();
+
+
 public:
     int tests = 10000;
+
+    Test(const int t = 0)
+    {
+        if (t)
+            this->tests = t;
+    }
+
     bool end_test(int err)
     {
         if (err)

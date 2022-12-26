@@ -8,10 +8,10 @@
 #include "../../src/gf.hh"
 #include "../../src/fmatrix.hh"
 
-class FMatrix_test : Test
+class FMatrix_test : public Test
 {
 private:
-    int dim;
+    int dim = 10;
 
     GF_element det_heap(const FMatrix &m);
     GF_element term(std::valarray<int> &perm, const FMatrix &m);
@@ -30,16 +30,13 @@ private:
     FMatrix random(int n);
 
 public:
-    FMatrix_test(const int dim, const int tests = 0)
-    {
-        if (tests)
-            this->tests = tests;
-        this->dim = dim;
-    }
+    using Test::Test;
 
-    bool run()
+    bool run(const int d = 0)
     {
         this->start_tests("fmatrix");
+        if (d)
+            this->dim = d;
 
         bool failure = test_pdet() | test_determinant_vandermonde()
             | test_determinant_random() | test_det_singular();

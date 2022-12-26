@@ -140,18 +140,18 @@ int main(int argc, char** argv)
     }
     if (fmt)
     {
-        FMatrix_test fm(dim, tests);
-        failure |= fm.run();
+        FMatrix_test fm(tests);
+        failure |= fm.run(dim);
     }
     if (ut)
     {
-        Util_test u(dim, tests);
-        failure |= u.run();
+        Util_test u(tests);
+        failure |= u.run(dim);
     }
     if (st)
     {
-        Solver_test s(dim, tests);
-        failure |= s.run();
+        Solver_test s(tests);
+        failure |= s.run(dim);
     }
     if (emt)
     {

@@ -4,24 +4,22 @@
 
 #include "test.hh"
 
-class Solver_test : Test
+class Solver_test : public Test
 {
 private:
-    const int n;
+    int n = 5;
 
     bool test_solver();
 
 public:
-    bool run()
+    using Test::Test;
+
+    bool run(const int deg = 0)
     {
+        if (deg)
+            this->n = deg;
         this->start_tests("solver");
         return test_solver();
-    }
-
-    Solver_test(const int n, const int tests = 0): n(n)
-    {
-        if (tests)
-            this->tests = tests;
     }
 };
 

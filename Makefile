@@ -107,7 +107,7 @@ nauty/directg:
 #################
 
 test32: digraph-tests
-	./digraph-tests -n32 -efux -d20 -t10000
+	./digraph-tests -n32 -egfux -d20 -t10000
 	./digraph-tests -n32 -s -d10 -t100
 
 test16: digraph-tests
@@ -115,8 +115,8 @@ test16: digraph-tests
 	./digraph-tests -n16 -s -d10 -t100
 
 test24: digraph-tests
-	./digraph-tests -n24 -egfux -d20 -n20 -t10000
-	./digraph-tests -n24 -s -d10 -n20 -t100
+	./digraph-tests -n24 -egfux -d20 -t10000
+	./digraph-tests -n24 -s -d10 -t100
 
 test: test16 test24 test32
 

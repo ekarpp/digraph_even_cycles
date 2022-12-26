@@ -7,7 +7,7 @@
 #include "test.hh"
 #include "../../src/ematrix.hh"
 
-class EMatrix_test : Test
+class EMatrix_test : public Test
 {
 private:
     int dim = 5;
@@ -21,11 +21,7 @@ private:
     GR_element per_m_det_heap(const EMatrix &m);
 
 public:
-    EMatrix_test(int tests = 0)
-    {
-        if (tests)
-            this->tests = tests;
-    }
+    using Test::Test;
 
     bool run()
     {

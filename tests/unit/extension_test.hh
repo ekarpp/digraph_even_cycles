@@ -4,7 +4,7 @@
 
 #include "test.hh"
 
-class GR_test : Test
+class GR_test : public Test
 {
 private:
     int n;
@@ -20,10 +20,7 @@ private:
     bool test_kronecker_mul();
 
 public:
-    GR_test(int tests)
-    {
-        this->tests = tests;
-    }
+    using Test::Test;
 
     bool run()
     {
