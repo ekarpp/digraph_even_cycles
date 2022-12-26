@@ -10,35 +10,23 @@
 
 using namespace std;
 
-EMatrix FMatrix::lift() const
+/* multiply diagonal by e and lift the resulting matrix */
+EMatrix FMatrix::mul_diag_lift(const GF_element &e) const
 {
-    valarray<GR_element> lifted(this->get_n() * this->get_n());
-
-    for (int x = 0; x < this->get_n(); x++)
-    {
-        for (int y = 0; y < this->get_n(); y++)
-            lifted[x*this->get_n() + y] = this->operator()(x,y).lift();
-    }
-
-    return EMatrix(this->get_n(), lifted);
-}
-
-FMatrix FMatrix::mul_diag(const GF_element &e) const
-{
-    valarray<GF_element> m(this->get_n() * this->get_n());
+    EMatrix m(this->get_n());
 
     for (int row = 0; row < this->get_n(); row++)
     {
         for (int col = 0; col < this->get_n(); col++)
         {
             if (row == col)
-                m[row*this->get_n() + col] = this->operator()(row,col) * e;
+                m.set(row, col, (this->operator()(row,col) * e).lift());
             else
-                m[row*this->get_n() + col] = this->operator()(row,col);
+                m.set(row, col, this->operator()(row,col).lift());
         }
     }
 
-    return FMatrix(this->get_n(), m);
+    return m;
 }
 
 void FMatrix::mul_gamma(const int r1, const int r2, const GF_element &gamma)
@@ -137,7 +125,7 @@ Polynomial FMatrix::pdet(const int r1, const int r2) const
 
 GF_element FMatrix::pcc(const GF_element &e) const
 {
-    EMatrix E = this->mul_diag(e).lift();
+    EMatrix E = this->mul_diag_lift(e);
     const GR_element elem = E.per_m_det();
     return elem.div2().project();
 }

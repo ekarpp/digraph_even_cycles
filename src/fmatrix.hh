@@ -24,7 +24,7 @@ public:
     /* multiply diagonal by e. merge this with lift, so
      * that only one new copy is created? lift gets always
      * called after this */
-    FMatrix mul_diag(const GF_element &e) const;
+    EMatrix mul_diag_lift(const GF_element &e) const;
 
     void mul_gamma(const int r1, const int r2, const GF_element &gamma);
 
