@@ -182,13 +182,12 @@ private:
     )
     {
         for (int col = idx; col < this->cols; col++)
-        {
-            const long4_t tmp = global::F->wide_mul(this->get(r1, col), pack);
-
             this->set(r2, col,
-                      _mm256_xor_si256(this->get(r2, col), tmp)
+                      _mm256_xor_si256(
+                          this->get(r2, col),
+                          global::F->wide_mul(this->get(r1, col), pack)
+                      )
             );
-        }
     }
 
 public:
