@@ -8,6 +8,7 @@
 #include "extension.hh"
 #include "matrix.hh"
 #include "fmatrix.hh"
+#include "polynomial.hh"
 
 /* forward declare */
 class FMatrix;
@@ -17,7 +18,7 @@ class EMatrix : public Matrix<GR_element>
 public:
     using Matrix::Matrix;
 
-    FMatrix project() const;
+    Polynomial project_pdet(const int i1, const int i2) const;
 
     /* returns Per(this) - Det(this) as described in chapter 3
      * of the paper*/
@@ -25,7 +26,7 @@ public:
 
     GR_element row_op_per(const int i1, const int j);
 
-    GR_element per_similar(const int i1, const int i2);
+    GR_element per_similar(const int i1, const int i2) const;
 };
 
 #endif

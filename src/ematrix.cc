@@ -10,17 +10,15 @@
 
 using namespace std;
 
-FMatrix EMatrix::project() const
+Polynomial EMatrix::project_pdet(const int i1, const int i2) const
 {
-    valarray<GF_element> proj(this->get_n() * this->get_n());
+    FMatrix m(this->get_n());
 
-    for (int x = 0; x < this->get_n(); x++)
-    {
-        for (int y = 0; y < this->get_n(); y++)
-            proj[x*this->get_n() + y] = this->operator()(x,y).project();
-    }
+    for (int row = 0; row < this->get_n(); row++)
+        for (int col = 0; col < this->get_n(); col++)
+            m.set(row, col, this->operator()(row, col).project());
 
-    return FMatrix(this->get_n(), proj);
+    return m.pdet(i1, i2);
 }
 
 /* returns Per(this) - Det(this) as described in chapter 3
@@ -130,17 +128,16 @@ GR_element EMatrix::row_op_per(const int i1, const int j)
                 mpp.set(i2, col, t * this->operator()(i1, col));
 
             /* project creates new copy here */
-            acc += mpp.per_similar(i1, i2);//project().pdet(i1, i2);
+            acc += mpp.per_similar(i1, i2);
         }
     }
     return acc;
 }
 
 /* permanent of a matrix where rows i1 and i2 are similar */
-GR_element EMatrix::per_similar(const int i1, const int i2)
+GR_element EMatrix::per_similar(const int i1, const int i2) const
 {
-    FMatrix proj = this->project();
-    Polynomial pdet = proj.pdet(i1, i2);
+    Polynomial pdet = this->project_pdet(i1, i2);
     GF_element sum = util::GF_zero();
     for (int i = 0; i < this->get_n(); i++)
         sum += pdet[i];
