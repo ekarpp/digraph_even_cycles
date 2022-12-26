@@ -45,9 +45,9 @@ public:
 
         std::string dash(whole.length(), '-');
 
-        std::cout << "\033[36m" << dash << std::endl;
-        std::cout << whole <<  std::endl;
-        std::cout << dash << "\033[0m" << std::endl;
+        std::cout << "\033[36m" << dash << "\033[0m" << std::endl;
+        std::cout << "\033[36m" << whole << "\033[0m" << std::endl;
+        std::cout << "\033[36m" << dash << "\033[0m" << std::endl;
     }
 };
 
