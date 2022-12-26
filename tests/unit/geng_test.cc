@@ -52,12 +52,21 @@ bool Geng_test::test_geng()
             cout << flush;
         }
     } while (cin >> line);
-    cout << "\r" << fail << "/" << total;
-    cout << " (" << ((float) fail) / total * 100 << "%)";
-    cout << endl;
 
-    /* TODO: add error margin */
-    return false;
+    /* real limit is 1 - (1 - 2^{-d})^n, we are rather conservative here. */
+    const double error_lim = 1.0 / this->n;
+    const double errorp = fail * (1.0 / total);
+
+    cout << "\r";
+    if (errorp < error_lim)
+        cout << "\033[32m";
+    else
+        cout << "\033[31m";
+
+    cout << fail << " out of " << total << " failed ("
+         << errorp * 100 << "%)\033[0m" << endl;
+
+    return (errorp >= error_lim);
 }
 
 void Geng_test::store_graph(const vector<vector<int>> &g, int id)

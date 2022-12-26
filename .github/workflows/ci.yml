@@ -7,14 +7,18 @@ on:
     branches: [ master ]
 
 jobs:
-  unit-test:
+  unit-tests:
     runs-on: ubuntu-latest
 
     steps:
     - name: checkout repo
       uses: actions/checkout@v3
-    - name: build and run tests
+    - name: build
+      run: make digraph-tests nauty/geng nauty/directg nauty/listg
+    - name: unit tests
       run: make test
+    - name: geng test
+      run: for EXP in 16 24 32; do EXP=$EXP VERT=5 make geng-test; done
 
   build:
     runs-on: ubuntu-latest

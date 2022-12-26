@@ -34,13 +34,16 @@ bool Solver_test::test_solver()
             err++;
     }
 
-    /* TODO: add error margin */
-    if (err == 0)
+    /* real limit is 1 - (1 - 2^{-d})^n, we are rather conservative here. */
+    const double error_lim = 1.0 / this->n;
+    const double errorp = err * (1.0 / this->tests);
+
+    if (errorp < error_lim)
         cout << "\033[32m";
     else
         cout << "\033[31m";
     cout << err << " out of " << this->tests << " failed (";
-    cout << (float) err / this->tests * 100 << "%)" << "\033[0m" << endl;
+    cout << errorp * 100 << "%)" << "\033[0m" << endl;
 
-    return false;
+    return (errorp >= error_lim);
 }
