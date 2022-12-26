@@ -42,7 +42,7 @@ bool Util_test::test_interpolation()
             }
         }
     }
-    return true;//this->end_test(err);
+    return this->end_test(err);
 }
 
 bool Util_test::test_log2()
