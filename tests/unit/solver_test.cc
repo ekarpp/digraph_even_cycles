@@ -33,9 +33,14 @@ bool Solver_test::test_solver()
         if (s.shortest_even_cycle(G) != s.shortest_even_cycle_brute(G))
             err++;
     }
-    cout << err << " out of " << this->tests << " failed (";
-    cout << (float) err / this->tests * 100 << "%)" << endl;
 
     /* TODO: add error margin */
+    if (err == 0)
+        cout << "\033[32m";
+    else
+        cout << "\033[31m";
+    cout << err << " out of " << this->tests << " failed (";
+    cout << (float) err / this->tests * 100 << "%)" << "\033[0m" << endl;
+
     return false;
 }

@@ -21,11 +21,16 @@ public:
     bool end_test(int err)
     {
         if (err)
+        {
+            std::cout << "\033[31m";
             std::cout << err << " error(s)";
+        }
         else
+        {
+            std::cout << "\033[32m";
             std::cout << "CLEAR";
-
-        std::cout << std::endl;
+        }
+        std::cout << "\033[0m" << std::endl;
 
         /* did tests fail? */
         return (err != 0);
@@ -40,9 +45,9 @@ public:
 
         std::string dash(whole.length(), '-');
 
-        std::cout << dash << std::endl;
-        std::cout << whole << std::endl;
-        std::cout << dash << std::endl;
+        std::cout << "\033[36m" << dash << std::endl;
+        std::cout << whole <<  std::endl;
+        std::cout << dash << "\033[0m" << std::endl;
     }
 };
 
