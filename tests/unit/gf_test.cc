@@ -81,7 +81,7 @@ bool GF_test::test_lift_project()
     cout << "lift project: ";
     int err = 0;
     uint64_t i = 0;
-    while (i <= global::F->get_mask())
+    while (i <= min(MAX_TESTS, global::F->get_mask()))
     {
         GF_element e(i);
         GR_element b(global::randgen() & global::E->get_mask(), i);
