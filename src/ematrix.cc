@@ -130,12 +130,19 @@ GR_element EMatrix::row_op_per(const int i1, const int j)
                 mpp.set(i2, col, t * this->operator()(i1, col));
 
             /* project creates new copy here */
-            const Polynomial p = mpp.project().pdet(i1, i2);
-            GF_element sum = util::GF_zero();
-            for (int i = 0; i < this->get_n() - 1; i++)
-                sum += p[i];
-            acc += sum.lift() + sum.lift();
+            acc += mpp.per_similar(i1, i2);//project().pdet(i1, i2);
         }
     }
     return acc;
+}
+
+/* permanent of a matrix where rows i1 and i2 are similar */
+GR_element EMatrix::per_similar(const int i1, const int i2)
+{
+    FMatrix proj = this->project();
+    Polynomial pdet = proj.pdet(i1, i2);
+    GF_element sum = util::GF_zero();
+    for (int i = 0; i < this->get_n(); i++)
+        sum += pdet[i];
+    return sum.lift() + sum.lift();
 }

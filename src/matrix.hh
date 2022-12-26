@@ -13,8 +13,8 @@ private:
 
 public:
     /* for graph.cc */
-    Matrix() {}
-    Matrix(const int d): n(d), m(d*d) {}
+    Matrix() { }
+    explicit Matrix(const int d): n(d), m(d*d) { }
     Matrix(const int d, const std::valarray<T> &matrix): n(d), m(d*d)
     {
         for (int i = 0; i < this->n; i++)

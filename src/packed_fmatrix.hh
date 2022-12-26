@@ -23,16 +23,30 @@ private:
     int nmod;
     std::vector<long4_t> m;
     std::vector<long4_t> coeffs;
+    /* vectorized copy of the initial matrix. read from here after each
+     * determinant computation. */
+    std::vector<long4_t> base;
 
     const long4_t &get(const int row, const int col) const
     {
         return this->m[row*this->cols + col];
     }
 
+    long4_t get_base(const int row, const int col) const
+    {
+        return this->base[row*this->cols + col];
+    }
+
     void set(const int row, const int col, const long4_t &v)
     {
         this->m[row*this->cols + col] = v;
     }
+
+    void set_base(const int row, const int col, const long4_t &v)
+    {
+        this->base[row*this->cols + col] = v;
+    }
+
 
     template <int index>
     void coeff_loop()
@@ -178,7 +192,7 @@ private:
     }
 
 public:
-    Packed_FMatrix(const int n)
+    Packed_FMatrix(const int n, const FMatrix &matrix)
     {
         this->nmod = n % VECTOR_N;
         this->rows = n;
@@ -187,15 +201,13 @@ public:
         this->cols = this->rows / VECTOR_N;
 
         this->m.resize(this->rows * this->cols);
+        this->base.resize(this->rows * this->cols);
         this->coeffs.resize(this->cols);
-    }
 
-    void init(const FMatrix &matrix)
-    {
         for (int r = 0; r < matrix.get_n(); r++)
         {
             for (int c = 0; c < matrix.get_n() / VECTOR_N; c++)
-                this->set(r, c,
+                this->set_base(r, c,
                           _mm256_set_epi32(
                               matrix(r, VECTOR_N*c + 0).get_repr(),
                               matrix(r, VECTOR_N*c + 1).get_repr(),
@@ -216,7 +228,7 @@ public:
                 for (int i = 0; i < this->nmod; i++)
                     elems[i] = matrix(r, VECTOR_N*c + i).get_repr();
 
-                this->set(r, c, _mm256_set_epi32(
+                this->set_base(r, c, _mm256_set_epi32(
                               elems[0], elems[1],
                               elems[2], elems[3],
                               elems[4], elems[5],
@@ -228,49 +240,49 @@ public:
         for (int r = matrix.get_n(); r < this->rows; r++)
         {
             for (int c = 0; c < this->cols - 1; c++)
-                this->set(r, c, _mm256_setzero_si256());
+                this->set_base(r, c, _mm256_setzero_si256());
 
             /* lazy.... */
             switch (r % VECTOR_N)
             {
             case 1:
-                this->set(r, this->cols - 1, _mm256_set_epi64x(
+                this->set_base(r, this->cols - 1, _mm256_set_epi64x(
                               1, 0, 0, 0
                               )
                     );
                 break;
             case 2:
-                this->set(r, this->cols - 1, _mm256_set_epi64x(
+                this->set_base(r, this->cols - 1, _mm256_set_epi64x(
                               0, 1ull << 32, 0, 0
                               )
                     );
                 break;
             case 3:
-                this->set(r, this->cols - 1, _mm256_set_epi64x(
+                this->set_base(r, this->cols - 1, _mm256_set_epi64x(
                               0, 1, 0, 0
                               )
                     );
                 break;
             case 4:
-                this->set(r, this->cols - 1, _mm256_set_epi64x(
+                this->set_base(r, this->cols - 1, _mm256_set_epi64x(
                               0, 0, 1ull << 32, 0
                               )
                     );
                 break;
             case 5:
-                this->set(r, this->cols - 1, _mm256_set_epi64x(
+                this->set_base(r, this->cols - 1, _mm256_set_epi64x(
                               0, 0, 1, 0
                               )
                     );
                 break;
             case 6:
-                this->set(r, this->cols - 1, _mm256_set_epi64x(
+                this->set_base(r, this->cols - 1, _mm256_set_epi64x(
                               0, 0, 0, 1ull << 32
                               )
                     );
                 break;
             case 7:
-                this->set(r, this->cols - 1, _mm256_set_epi64x(
+                this->set_base(r, this->cols - 1, _mm256_set_epi64x(
                               0, 0, 0, 1
                               )
                     );
@@ -278,6 +290,14 @@ public:
             }
 
         }
+
+    }
+
+    void init()
+    {
+        for (int row = 0; row < this->rows; row++)
+            for (int col = 0; col < this->cols; col++)
+                this->set(row, col, this->get_base(row, col));
     }
 
     void mul_gamma(const int r1, const int r2, const GF_element &gamma)

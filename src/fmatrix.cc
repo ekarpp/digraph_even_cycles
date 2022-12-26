@@ -101,7 +101,7 @@ GF_element FMatrix::det()
 }
 
 /* uses random sampling and la grange interpolation
- * to get the polynomial determinant. */
+ * to get the polynomial determinant. rows r1 and r2 are similar. */
 Polynomial FMatrix::pdet(const int r1, const int r2) const
 {
     /* determinant has deg <= 2*n - 2 */
@@ -118,21 +118,21 @@ Polynomial FMatrix::pdet(const int r1, const int r2) const
             A.mul_gamma(r1, r2, gamma[i]);
             delta[i] = A.det();
         }
-        /* la grange */
-        return util::poly_interpolation(gamma, delta);
     }
-
-    Packed_FMatrix PA(this->get_n());
-
-    for (int i = 0; i < 2*this->get_n() - 1; i++)
+    else
     {
-        PA.init(*this);
-        PA.mul_gamma(r1, r2, gamma[i]);
-        delta[i] = PA.det();
+        Packed_FMatrix PA(this->get_n(), *this);
+
+        for (int i = 0; i < 2*this->get_n() - 1; i++)
+        {
+            PA.init();
+            PA.mul_gamma(r1, r2, gamma[i]);
+            delta[i] = PA.det();
+        }
     }
 
+    /* la grange */
     return util::poly_interpolation(gamma, delta);
-
 }
 
 GF_element FMatrix::pcc(const GF_element &e) const

@@ -177,7 +177,7 @@ void GR_test::test_is_even()
     int err = 0;
     for (int i = 0; i < this->tests; i++)
     {
-        GR_element e(0x0, global::randgen() & global::E->get_mask());
+        GR_element e(global::randgen() & global::E->get_mask(), 0x0);
         if (!e.is_even())
             err++;
     }
