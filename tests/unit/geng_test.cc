@@ -10,16 +10,7 @@
 
 using namespace std;
 
-Geng_test::Geng_test()
-{
-    cout << "------------" << endl;
-    cout << "TESTING GENG" << endl;
-    cout << "------------" << endl;
-
-    this->run();
-}
-
-void Geng_test::test_geng()
+bool Geng_test::test_geng()
 {
     string line = "";
     cin >> line;
@@ -64,6 +55,9 @@ void Geng_test::test_geng()
     cout << "\r" << fail << "/" << total;
     cout << " (" << ((float) fail) / total * 100 << "%)";
     cout << endl;
+
+    /* TODO: add error margin */
+    return false;
 }
 
 void Geng_test::store_graph(const vector<vector<int>> &g, int id)

@@ -11,17 +11,18 @@ class Geng_test : Test
 private:
     int n;
 
-    void test_geng();
+    bool test_geng();
 
     void store_graph(const std::vector<std::vector<int>> &g, int id);
 
-    void run()
-    {
-        test_geng();
-    }
-
 public:
-    Geng_test();
+    Geng_test() { };
+
+    bool run()
+    {
+        this->start_tests("geng");
+        return test_geng();
+    }
 };
 
 #endif

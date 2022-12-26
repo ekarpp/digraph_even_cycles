@@ -9,21 +9,16 @@
 
 using namespace std;
 
-GF_test::GF_test()
-{
-    cout << "----------" << endl;
-    cout << "TESTING GF" << endl;
-    cout << "----------" << endl;
+/* don't go through the whole field,
+ * do at most 2^24 tests */
+constexpr uint64_t MAX_TESTS = 0xFFFFFF;
 
-    this->run();
-}
-
-void GF_test::test_add_inverse()
+bool GF_test::test_add_inverse()
 {
     cout << "add inverse: ";
     int err = 0;
     uint64_t i = 0;
-    while (i <= global::F->get_mask())
+    while (i <= min(MAX_TESTS, global::F->get_mask()))
     {
         GF_element e(i);
         if (e + e != util::GF_zero()
@@ -31,14 +26,14 @@ void GF_test::test_add_inverse()
             err++;
         i++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void GF_test::test_associativity()
+bool GF_test::test_associativity()
 {
     cout << "test associativity: ";
     int err = 0;
-    for (int i = 0; i < 10000; i++)
+    for (int i = 0; i < this->tests; i++)
     {
         GF_element a = util::GF_random();
         GF_element b = util::GF_random();
@@ -46,45 +41,47 @@ void GF_test::test_associativity()
         if (a*(b+c) != c*a + b*a)
             err++;
     }
-    this->end_test(err);
+    return this->end_test(err);
 }
 
-void GF_test::test_mul_id()
+bool GF_test::test_mul_id()
 {
     cout << "mul with id: ";
     int err = 0;
     uint64_t i = 0;
-    while (i <= global::F->get_mask())
+    /* dont do more than 2^24 */
+    while (i <= min(MAX_TESTS, global::F->get_mask()))
     {
         GF_element e(i);
         if (e * util::GF_one() != e)
             err++;
         i++;
     }
-    this->end_test(err);
+    return this->end_test(err);
 }
 
-void GF_test::test_mul_inverse()
+bool GF_test::test_mul_inverse()
 {
     cout << "mul with inverse: ";
     int err = 0;
     uint64_t i = 1;
-    while (i <= global::F->get_mask())
+    /* dont do more than 2^24 */
+    while (i <= min(MAX_TESTS, global::F->get_mask()))
     {
         GF_element e(i);
         if (e / e != util::GF_one())
             err++;
         i++;
     }
-    this->end_test(err);
+    return this->end_test(err);
 }
 
-void GF_test::test_lift_project()
+bool GF_test::test_lift_project()
 {
     cout << "lift project: ";
     int err = 0;
     uint64_t i = 0;
-    while (i <= global::F->get_mask())
+    while (i <= min(MAX_TESTS, global::F->get_mask()))
     {
         GF_element e(i);
         GR_element b(global::randgen() & global::E->get_mask(), i);
@@ -95,15 +92,12 @@ void GF_test::test_lift_project()
             err++;
         i++;
     }
-    this->end_test(err);
+    return this->end_test(err);
 }
 
 
-void GF_test::test_wide_mul()
+bool GF_test::test_wide_mul()
 {
-    if (global::F->get_n() != 16)
-        return;
-
     constexpr int WIDTH = 4;
     cout << "wide mul: ";
     int err = 0;
@@ -147,5 +141,5 @@ void GF_test::test_wide_mul()
         if (prod[3] != _mm256_extract_epi64(pp, 3))
             err++;
     }
-    this->end_test(err);
+    return this->end_test(err);
 }

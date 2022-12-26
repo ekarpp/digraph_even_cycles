@@ -9,19 +9,7 @@
 
 using namespace std;
 
-Solver_test::Solver_test(int n, int tests = 0)
-{
-    if (tests)
-        this->tests = tests;
-    this->n = n;
-    cout << "--------------" << endl;
-    cout << "TESTING SOLVER" << endl;
-    cout << "--------------" << endl;
-
-    this->run();
-}
-
-void Solver_test::test_solver()
+bool Solver_test::test_solver()
 {
     cout << "solver random graph test: ";
     int err = 0;
@@ -45,6 +33,14 @@ void Solver_test::test_solver()
         if (s.shortest_even_cycle(G) != s.shortest_even_cycle_brute(G))
             err++;
     }
+
+    /* TODO: add error margin */
+    if (err == 0)
+        cout << "\033[32m";
+    else
+        cout << "\033[31m";
     cout << err << " out of " << this->tests << " failed (";
-    cout << (float) err / this->tests * 100 << "%)" << endl;
+    cout << (float) err / this->tests * 100 << "%)" << "\033[0m" << endl;
+
+    return false;
 }

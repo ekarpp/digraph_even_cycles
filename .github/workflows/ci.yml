@@ -1,0 +1,39 @@
+name: digraph-tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@v3
+    - name: build tests
+      run: make digraph-tests
+    - name: run unit tests
+      shell: bash
+      run: |
+        for DEG in 16 24 32
+        do
+            echo ""
+            echo "degree ${DEG}"
+            echo ""
+            ./digraph-tests -n${DEG} -egfux -d20 -t10000
+            ./digraph-tests -n${DEG} -s -d10 -t100
+        done
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@v3
+    - name: build
+      run: make digraph
+    - name: test binary
+      run: ./digraph -tf graphs/test

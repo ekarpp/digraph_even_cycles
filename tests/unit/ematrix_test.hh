@@ -7,19 +7,13 @@
 #include "test.hh"
 #include "../../src/ematrix.hh"
 
-class EMatrix_test : Test
+class EMatrix_test : public Test
 {
 private:
     int dim = 5;
 
-    void test_per_det();
-    void test_per_det_singular();
-
-    void run()
-    {
-        test_per_det();
-        test_per_det_singular();
-    }
+    bool test_per_det();
+    bool test_per_det_singular();
 
     EMatrix random();
     GR_element term(std::valarray<int> &perm, const EMatrix &m);
@@ -27,7 +21,14 @@ private:
     GR_element per_m_det_heap(const EMatrix &m);
 
 public:
-    EMatrix_test(int tests);
+    using Test::Test;
+
+    bool run()
+    {
+        this->start_tests("ematrix");
+
+        return test_per_det() | test_per_det_singular();
+    }
 };
 
 #endif

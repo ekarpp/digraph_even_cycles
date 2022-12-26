@@ -7,16 +7,47 @@
 class Test
 {
 private:
-    void run();
+
+
 public:
     int tests = 10000;
-    void end_test(int err)
+
+    Test(const int t = 0)
+    {
+        if (t)
+            this->tests = t;
+    }
+
+    bool end_test(int err)
     {
         if (err)
-            std::cout << err << " error";
+        {
+            std::cout << "\033[31m";
+            std::cout << err << " error(s)";
+        }
         else
+        {
+            std::cout << "\033[32m";
             std::cout << "CLEAR";
-        std::cout << std::endl;
+        }
+        std::cout << "\033[0m" << std::endl;
+
+        /* did tests fail? */
+        return (err != 0);
+    }
+
+    void start_tests(const std::string &name)
+    {
+        std::string whole = "testing ";
+        whole.append(name);
+        for (auto & c: whole)
+            c = std::toupper(c);
+
+        std::string dash(whole.length(), '-');
+
+        std::cout << "\033[36m" << dash << "\033[0m" << std::endl;
+        std::cout << "\033[36m" << whole << "\033[0m" << std::endl;
+        std::cout << "\033[36m" << dash << "\033[0m" << std::endl;
     }
 };
 

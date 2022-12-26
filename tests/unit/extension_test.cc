@@ -7,17 +7,7 @@
 
 using namespace std;
 
-
-GR_test::GR_test(int tests)
-{
-    cout << "-----------------" << endl;
-    cout << "TESTING EXTENSION" << endl;
-    cout << "-----------------" << endl;
-    this->tests = tests;
-    this->run();
-}
-
-void GR_test::test_add_inverse()
+bool GR_test::test_add_inverse()
 {
     cout << "add inverse: ";
     int err = 0;
@@ -27,10 +17,10 @@ void GR_test::test_add_inverse()
         if (e - e != util::GR_zero())
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void GR_test::test_associativity()
+bool GR_test::test_associativity()
 {
     cout << "test associativity: ";
     int err = 0;
@@ -42,10 +32,10 @@ void GR_test::test_associativity()
         if (a*(b+c) != c*a + b*a)
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void GR_test::test_mul()
+bool GR_test::test_mul()
 {
     cout << "test mul: ";
     int err = 0;
@@ -60,10 +50,10 @@ void GR_test::test_mul()
             || b*util::GR_zero() != util::GR_zero())
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void GR_test::test_fast_mul()
+bool GR_test::test_fast_mul()
 {
     cout << "test fast mul: ";
     int err = 0;
@@ -78,10 +68,10 @@ void GR_test::test_fast_mul()
         if (fast.hi != ref.hi || fast.lo != ref.lo)
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void GR_test::test_kronecker_mul()
+bool GR_test::test_kronecker_mul()
 {
     cout << "test kronecker mul: ";
     int err = 0;
@@ -96,10 +86,10 @@ void GR_test::test_kronecker_mul()
         if (kron.hi != ref.hi || kron.lo != ref.lo)
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void GR_test::test_intel_rem()
+bool GR_test::test_intel_rem()
 {
     cout << "test intel rem: ";
     int err = 0;
@@ -115,10 +105,10 @@ void GR_test::test_intel_rem()
         if (euclid.hi != intel.hi || euclid.lo != intel.lo)
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void GR_test::test_mont_rem()
+bool GR_test::test_mont_rem()
 {
     cout << "test montgomery multiplication: ";
     int err = 0;
@@ -150,10 +140,10 @@ void GR_test::test_mont_rem()
         if (ref.hi != mont.hi || ref.lo != mont.lo)
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void GR_test::test_even_tau()
+bool GR_test::test_even_tau()
 {
     cout << "test even tau: ";
     int err = 0;
@@ -168,10 +158,10 @@ void GR_test::test_even_tau()
         if (!e.is_even())
             err++;
     }
-    this->end_test(err);
+    return this->end_test(err);
 }
 
-void GR_test::test_is_even()
+bool GR_test::test_is_even()
 {
     cout << "test is even: ";
     int err = 0;
@@ -181,5 +171,5 @@ void GR_test::test_is_even()
         if (!e.is_even())
             err++;
     }
-    this->end_test(err);
+    return this->end_test(err);
 }

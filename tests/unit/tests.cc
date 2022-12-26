@@ -126,20 +126,43 @@ int main(int argc, char** argv)
         break;
     }
 
-    if (et)
-        GR_test e(tests);
-    if (gft)
-        GF_test f;
-    if (fmt)
-        FMatrix_test fm(dim, tests);
-    if (ut)
-        Util_test u(dim, tests);
-    if (st)
-        Solver_test s(dim, tests);
-    if (emt)
-        EMatrix_test em(tests);
-    if (geng)
-        Geng_test g;
+    bool failure = false;
 
-    return 0;
+    if (et)
+    {
+        GR_test e(tests);
+        failure |= e.run();
+    }
+    if (gft)
+    {
+        GF_test f;
+        failure |= f.run();
+    }
+    if (fmt)
+    {
+        FMatrix_test fm(tests);
+        failure |= fm.run(dim);
+    }
+    if (ut)
+    {
+        Util_test u(tests);
+        failure |= u.run(dim);
+    }
+    if (st)
+    {
+        Solver_test s(tests);
+        failure |= s.run(dim);
+    }
+    if (emt)
+    {
+        EMatrix_test em(tests);
+        failure |= em.run();
+    }
+    if (geng)
+    {
+        Geng_test g;
+        failure |= g.run();
+    }
+
+    return failure;
 }

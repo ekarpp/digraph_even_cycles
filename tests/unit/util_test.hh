@@ -4,23 +4,25 @@
 
 #include "test.hh"
 
-class Util_test : Test
+class Util_test : public Test
 {
 private:
     int n;
 
-    void test_interpolation();
-
-    void test_log2();
-
-    void run()
-    {
-        test_interpolation();
-        test_log2();
-    }
+    bool test_interpolation();
+    bool test_log2();
 
 public:
-    Util_test(int n, int tests);
+    using Test::Test;
+
+    bool run(const int deg = 0)
+    {
+        if (deg)
+            this->n = deg;
+        this->start_tests("util");
+
+        return test_interpolation() | test_log2();
+    }
 };
 
 #endif
