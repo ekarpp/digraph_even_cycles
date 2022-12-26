@@ -13,6 +13,8 @@ jobs:
     steps:
     - name: checkout repo
       uses: actions/checkout@v3
+      with:
+        submodules: recursive
     - name: build
       run: make digraph-tests nauty/geng nauty/directg nauty/listg
     - name: unit tests
