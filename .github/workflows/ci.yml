@@ -16,4 +16,10 @@ jobs:
     - name: build tests
       run: make digraph-tests
     - name: test
-      run: ./digraph-tests -n32 -efux -d20 -t10000
+      shell: bash
+      run: |
+        for DEG in 16 24 32
+        do
+            ./digraph-tests -n${DEG} -efux -d20 -t10000
+            ./digraph-tests -n${DEG} -s -d10 -t100
+        done
