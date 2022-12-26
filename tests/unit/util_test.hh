@@ -7,20 +7,24 @@
 class Util_test : Test
 {
 private:
-    int n;
+    const int n;
 
-    void test_interpolation();
-
-    void test_log2();
-
-    void run()
-    {
-        test_interpolation();
-        test_log2();
-    }
+    bool test_interpolation();
+    bool test_log2();
 
 public:
-    Util_test(int n, int tests);
+    Util_test(const int n, const int tests = 0): n(n)
+    {
+        if (tests)
+            this->tests = tests;
+    }
+
+    bool run()
+    {
+        this->start_tests("util");
+
+        return test_interpolation() | test_log2();
+    }
 };
 
 #endif

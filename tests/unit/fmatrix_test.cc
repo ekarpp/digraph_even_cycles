@@ -11,19 +11,6 @@
 
 using namespace std;
 
-FMatrix_test::FMatrix_test(int dim, int tests = 0)
-{
-    if (tests)
-        this->tests = tests;
-    this->dim = dim;
-
-    cout << "---------------" << endl;
-    cout << "TESTING FMATRIX" << endl;
-    cout << "---------------" << endl;
-
-    this->run();
-}
-
 FMatrix FMatrix_test::vandermonde()
 {
     valarray<GF_element> m(this->dim * this->dim);
@@ -112,7 +99,7 @@ FMatrix FMatrix_test::random(int n = 0)
     return FMatrix(n, m);
 }
 
-void FMatrix_test::test_determinant_vandermonde()
+bool FMatrix_test::test_determinant_vandermonde()
 {
     cout << "determinant vandermonde: ";
     int err = 0;
@@ -128,10 +115,10 @@ void FMatrix_test::test_determinant_vandermonde()
         if (det != vander.det())
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void FMatrix_test::test_determinant_random()
+bool FMatrix_test::test_determinant_random()
 {
     cout << "determinant random: ";
     int err = 0;
@@ -142,10 +129,10 @@ void FMatrix_test::test_determinant_random()
         if (d != m.det())
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void FMatrix_test::test_det_singular()
+bool FMatrix_test::test_det_singular()
 {
     cout << "determinant on singular matrices: ";
     int err = 0;
@@ -164,10 +151,10 @@ void FMatrix_test::test_det_singular()
         if (m.det() != util::GF_zero())
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void FMatrix_test::test_pdet()
+bool FMatrix_test::test_pdet()
 {
     cout << "polynomial determinant: ";
     int err = 0;
@@ -192,10 +179,10 @@ void FMatrix_test::test_pdet()
                 err++;
         }
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void FMatrix_test::test_packed_determinant()
+bool FMatrix_test::test_packed_determinant()
 {
     cout << "determinant on packed matrices: ";
     int err = 0;
@@ -211,10 +198,10 @@ void FMatrix_test::test_packed_determinant()
         if (pack != ref)
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void FMatrix_test::test_packed_determinant_singular()
+bool FMatrix_test::test_packed_determinant_singular()
 {
     cout << "determinant on packed singular matrices: ";
     int err = 0;
@@ -239,10 +226,10 @@ void FMatrix_test::test_packed_determinant_singular()
         if (pack != ref)
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void FMatrix_test::test_packed_gamma_mul()
+bool FMatrix_test::test_packed_gamma_mul()
 {
     cout << "packed gamma mul: ";
     int err = 0;
@@ -265,10 +252,10 @@ void FMatrix_test::test_packed_gamma_mul()
         if (A != PA.unpack())
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void FMatrix_test::test_packed_init()
+bool FMatrix_test::test_packed_init()
 {
 
     cout << "packed matrix init: ";
@@ -282,5 +269,5 @@ void FMatrix_test::test_packed_init()
         if (A != PA.unpack())
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }

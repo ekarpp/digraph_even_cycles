@@ -9,19 +9,7 @@
 
 using namespace std;
 
-Solver_test::Solver_test(int n, int tests = 0)
-{
-    if (tests)
-        this->tests = tests;
-    this->n = n;
-    cout << "--------------" << endl;
-    cout << "TESTING SOLVER" << endl;
-    cout << "--------------" << endl;
-
-    this->run();
-}
-
-void Solver_test::test_solver()
+bool Solver_test::test_solver()
 {
     cout << "solver random graph test: ";
     int err = 0;
@@ -47,4 +35,7 @@ void Solver_test::test_solver()
     }
     cout << err << " out of " << this->tests << " failed (";
     cout << (float) err / this->tests * 100 << "%)" << endl;
+
+    /* TODO: add error margin */
+    return false;
 }

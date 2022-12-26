@@ -10,19 +10,7 @@
 
 using namespace std;
 
-Util_test::Util_test(int n, int tests = 0)
-{
-    if (tests)
-        this->tests = tests;
-    this->n = n;
-    cout << "------------" << endl;
-    cout << "TESTING UTIL" << endl;
-    cout << "------------" << endl;
-
-    this->run();
-}
-
-void Util_test::test_interpolation()
+bool Util_test::test_interpolation()
 {
     cout << "polynomial interpolation: ";
     int err = 0;
@@ -54,10 +42,10 @@ void Util_test::test_interpolation()
             }
         }
     }
-    end_test(err);
+    return true;//this->end_test(err);
 }
 
-void Util_test::test_log2()
+bool Util_test::test_log2()
 {
     cout << "log2: ";
     int err = 0;
@@ -69,5 +57,5 @@ void Util_test::test_log2()
         if (shift != util::log2(bit))
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }

@@ -7,17 +7,22 @@
 class Solver_test : Test
 {
 private:
-    int n;
+    const int n;
 
-    void test_solver();
-
-    void run()
-    {
-        test_solver();
-    }
+    bool test_solver();
 
 public:
-    Solver_test(int n, int tests);
+    bool run()
+    {
+        this->start_tests("solver");
+        return test_solver();
+    }
+
+    Solver_test(const int n, const int tests = 0): n(n)
+    {
+        if (tests)
+            this->tests = tests;
+    }
 };
 
 #endif

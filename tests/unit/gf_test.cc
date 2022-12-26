@@ -9,16 +9,7 @@
 
 using namespace std;
 
-GF_test::GF_test()
-{
-    cout << "----------" << endl;
-    cout << "TESTING GF" << endl;
-    cout << "----------" << endl;
-
-    this->run();
-}
-
-void GF_test::test_add_inverse()
+bool GF_test::test_add_inverse()
 {
     cout << "add inverse: ";
     int err = 0;
@@ -31,10 +22,10 @@ void GF_test::test_add_inverse()
             err++;
         i++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void GF_test::test_associativity()
+bool GF_test::test_associativity()
 {
     cout << "test associativity: ";
     int err = 0;
@@ -46,10 +37,10 @@ void GF_test::test_associativity()
         if (a*(b+c) != c*a + b*a)
             err++;
     }
-    this->end_test(err);
+    return this->end_test(err);
 }
 
-void GF_test::test_mul_id()
+bool GF_test::test_mul_id()
 {
     cout << "mul with id: ";
     int err = 0;
@@ -61,10 +52,10 @@ void GF_test::test_mul_id()
             err++;
         i++;
     }
-    this->end_test(err);
+    return this->end_test(err);
 }
 
-void GF_test::test_mul_inverse()
+bool GF_test::test_mul_inverse()
 {
     cout << "mul with inverse: ";
     int err = 0;
@@ -76,10 +67,10 @@ void GF_test::test_mul_inverse()
             err++;
         i++;
     }
-    this->end_test(err);
+    return this->end_test(err);
 }
 
-void GF_test::test_lift_project()
+bool GF_test::test_lift_project()
 {
     cout << "lift project: ";
     int err = 0;
@@ -95,15 +86,12 @@ void GF_test::test_lift_project()
             err++;
         i++;
     }
-    this->end_test(err);
+    return this->end_test(err);
 }
 
 
-void GF_test::test_wide_mul()
+bool GF_test::test_wide_mul()
 {
-    if (global::F->get_n() != 16)
-        return;
-
     constexpr int WIDTH = 4;
     cout << "wide mul: ";
     int err = 0;
@@ -147,5 +135,5 @@ void GF_test::test_wide_mul()
         if (prod[3] != _mm256_extract_epi64(pp, 3))
             err++;
     }
-    this->end_test(err);
+    return this->end_test(err);
 }

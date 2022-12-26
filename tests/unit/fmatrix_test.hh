@@ -17,36 +17,41 @@ private:
     GF_element term(std::valarray<int> &perm, const FMatrix &m);
     void swap(int i1, int i2, std::valarray<int> &perm);
 
-    void test_determinant_vandermonde();
-    void test_det_singular();
-    void test_determinant_random();
-    void test_pdet();
-    void test_packed_determinant();
-    void test_packed_determinant_singular();
-    void test_packed_gamma_mul();
-    void test_packed_init();
-
-    void run()
-    {
-        test_determinant_vandermonde();
-        test_determinant_random();
-        test_det_singular();
-        test_pdet();
-
-        if (global::F->get_n() == 16)
-        {
-            test_packed_init();
-            test_packed_determinant();
-            test_packed_determinant_singular();
-            test_packed_gamma_mul();
-        }
-    }
+    bool test_determinant_vandermonde();
+    bool test_det_singular();
+    bool test_determinant_random();
+    bool test_pdet();
+    bool test_packed_determinant();
+    bool test_packed_determinant_singular();
+    bool test_packed_gamma_mul();
+    bool test_packed_init();
 
     FMatrix vandermonde();
     FMatrix random(int n);
 
 public:
-    FMatrix_test(int dim, int tests);
+    FMatrix_test(const int dim, const int tests = 0)
+    {
+        if (tests)
+            this->tests = tests;
+        this->dim = dim;
+    }
+
+    bool run()
+    {
+        this->start_tests("fmatrix");
+
+        bool failure = test_pdet() | test_determinant_vandermonde()
+            | test_determinant_random() | test_det_singular();
+
+        if (global::F->get_n() == 16)
+        {
+            failure |= test_packed_init() | test_packed_determinant()
+                | test_packed_determinant_singular() | test_packed_gamma_mul();
+        }
+
+        return failure;
+    }
 };
 
 #endif

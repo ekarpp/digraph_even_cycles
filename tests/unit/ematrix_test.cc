@@ -9,18 +9,6 @@
 
 using namespace std;
 
-EMatrix_test::EMatrix_test(int tests = 0)
-{
-    if (tests)
-        this->tests = tests;
-
-    cout << "---------------" << endl;
-    cout << "TESTING EMATRIX" << endl;
-    cout << "---------------" << endl;
-
-    this->run();
-}
-
 EMatrix EMatrix_test::random()
 {
     valarray<GR_element> m(this->dim * this->dim);
@@ -92,7 +80,7 @@ GR_element EMatrix_test::per_m_det_heap(const EMatrix &m)
     return per - det;
 }
 
-void EMatrix_test::test_per_det()
+bool EMatrix_test::test_per_det()
 {
     cout << "per minus det: ";
     int err = 0;
@@ -103,10 +91,10 @@ void EMatrix_test::test_per_det()
         if (pd != m.per_m_det())
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
 
-void EMatrix_test::test_per_det_singular()
+bool EMatrix_test::test_per_det_singular()
 {
     cout << "per minus det singular: ";
     int err = 0;
@@ -126,5 +114,5 @@ void EMatrix_test::test_per_det_singular()
         if (pd != m.per_m_det())
             err++;
     }
-    end_test(err);
+    return this->end_test(err);
 }
