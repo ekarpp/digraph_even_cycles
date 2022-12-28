@@ -53,20 +53,24 @@ bool Geng_test::test_geng()
         }
     } while (cin >> line);
 
-    /* real limit is 1 - (1 - 2^{-d})^n, we are rather conservative here. */
-    const double error_lim = 1.0 / this->n;
+    /* each computation should succeed with probability (1 - 2^{-d})^n */
+    const double error_lim =
+        1 - pow(1 - 1.0 / (1ull << global::F->get_n()), this->n);
     const double errorp = fail * (1.0 / total);
 
+    /* require that atleast one compt failed always for a failed test */
+    const bool failed = (errorp >= error_lim) && (fail > 1);
+
     cout << "\r";
-    if (errorp < error_lim)
-        cout << "\033[32m";
-    else
+    if (failed)
         cout << "\033[31m";
+    else
+        cout << "\033[32m";
 
     cout << fail << " out of " << total << " failed ("
          << errorp * 100 << "%)\033[0m" << endl;
 
-    return (errorp >= error_lim);
+    return failed;
 }
 
 void Geng_test::store_graph(const vector<vector<int>> &g, int id)
