@@ -1,6 +1,7 @@
 /* Copyright 2022 Eetu Karppinen. Subject to the MIT license. */
 #include <stdint.h>
 #include <iostream>
+#include <unordered_set>
 
 #include "gf.hh"
 #include "extension.hh"
@@ -56,24 +57,53 @@ uint64_t GF2_n::quo(uint64_t a, const uint64_t b) const
 uint64_t GF2_n::ext_euclid(const uint64_t a) const
 {
     // assert(a != 0)
-    uint64_t s = 0x1;
-    uint64_t s_next = 0x0;
-    uint64_t r = a;
-    uint64_t r_next = this->mod;
+    uint64_t s0 = 1;
+    uint64_t s1 = 0;
 
-    while (r_next != 0x0)
+    uint64_t r0 = a;
+    uint64_t r1 = this->mod;
+
+    /* invariants (t0/t1 not computed):
+     * x^{shift}*r0 = a*s0 + b*t0
+     * x^{shift}*r1 = a*s1 + b*t1
+     */
+
+    int shift = __builtin_ctzl(r0);
+    r0 >>= shift;
+
+    while (r0 != r1)
     {
-        const uint64_t q = this->quo(r, r_next);
-        uint64_t tmp = r ^ this->clmul(q, r_next);
-        r = r_next;
-        r_next = tmp;
+        const uint64_t ss = s0 ^ s1;
+        uint64_t rr = r0 ^ r1;
+        const int count = __builtin_ctzl(rr);
+        shift += count;
+        rr >>= count;
 
-        tmp = s ^ this->clmul(q, s_next);
-        s = s_next;
-        s_next = tmp;
+        if (r0 > r1)
+        {
+            r0 = rr;
+            s0 = ss;
+            s1 <<= count;
+        }
+        else
+        {
+            r1 = rr;
+            s1 = ss;
+            s0 <<= count;
+        }
     }
 
-    return s;
+    /* at this point: x^{shift} = s0*a + t0*mod. (t0 not computed)
+     *  we have s0*a + t0*mod = (s0 + mod)*a + (t0 + a)*mod.
+     *  use it to divide s0 by x^{shift} */
+    for (int i = 0; i < shift; i++)
+    {
+        if ((s0 & 1) == 1)
+            s0 ^= this->mod;
+        s0 >>= 1;
+    }
+
+    return s0;
 }
 
 /* returns r s.t. for some q,
@@ -125,7 +155,7 @@ namespace util
     std::vector<GF_element> distinct_elements(const int n)
     {
         std::vector<GF_element> vec(n);
-        std::set<uint64_t> have;
+        std::unordered_set<uint64_t> have;
         for (int i = 0; i < n; i++)
         {
             GF_element e = util::GF_random();
