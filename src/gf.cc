@@ -59,22 +59,18 @@ uint64_t GF2_n::ext_euclid(const uint64_t a) const
     uint64_t s0 = 1;
     uint64_t s1 = 0;
 
-    uint64_t t0 = 0;
-    uint64_t t1 = 1;
-
     uint64_t r0 = a;
     uint64_t r1 = this->mod;
 
     uint64_t shift = 0;
 
-    /* invariants:
+    /* invariants NOT:
      * x^{shift}*r0 = a*s0 + b*t0
      * x^{shift}*r1 = a*s1 + b*t1
      */
 
     shift = __builtin_ctzl(r0);
     r0 >>= shift;
-    t1 <<= shift;
 
     while (r0 != r1)
     {
@@ -84,8 +80,7 @@ uint64_t GF2_n::ext_euclid(const uint64_t a) const
             r0 ^= r1;
             count = __builtin_ctzl(r0);
             r0 >>= count;
-            t0 ^= t1;
-            t1 <<= count;
+
             s0 ^= s1;
             s1 <<= count;
         }
@@ -94,26 +89,18 @@ uint64_t GF2_n::ext_euclid(const uint64_t a) const
             r1 ^= r0;
             count = __builtin_ctzl(r1);
             r1 >>= count;
-            t1 ^= t0;
-            t0 <<= count;
+
             s1 ^= s0;
             s0 <<= count;
         }
         shift += count;
     }
 
-    const uint64_t t = t0 ^ t1;
-    const uint64_t s = s0 ^ s1;
-
     for (uint64_t i = 0; i < shift; i++)
     {
-        if ((s0 & 1) == 1 || (t0 & 1) == 1)
-        {
-            s0 ^= a;
-            t0 ^= t;
-        }
+        if ((s0 & 1) == 1)
+            s0 ^= this->mod;
         s0 >>= 1;
-        t0 >>= 1;
     }
 
     return s0;
