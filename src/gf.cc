@@ -1,6 +1,7 @@
 /* Copyright 2022 Eetu Karppinen. Subject to the MIT license. */
 #include <stdint.h>
 #include <iostream>
+#include <unordered_set>
 
 #include "gf.hh"
 #include "extension.hh"
@@ -153,7 +154,7 @@ namespace util
     std::vector<GF_element> distinct_elements(const int n)
     {
         std::vector<GF_element> vec(n);
-        std::set<uint64_t> have;
+        std::unordered_set<uint64_t> have;
         for (int i = 0; i < n; i++)
         {
             GF_element e = util::GF_random();
