@@ -62,19 +62,17 @@ uint64_t GF2_n::ext_euclid(const uint64_t a) const
     uint64_t r0 = a;
     uint64_t r1 = this->mod;
 
-    uint64_t shift = 0;
-
     /* invariants NOT:
      * x^{shift}*r0 = a*s0 + b*t0
      * x^{shift}*r1 = a*s1 + b*t1
      */
 
-    shift = __builtin_ctzl(r0);
+    int shift = __builtin_ctzl(r0);
     r0 >>= shift;
 
     while (r0 != r1)
     {
-        uint64_t count = 0;
+        int count = 0;
         if (r0 > r1)
         {
             r0 ^= r1;
@@ -96,7 +94,7 @@ uint64_t GF2_n::ext_euclid(const uint64_t a) const
         shift += count;
     }
 
-    for (uint64_t i = 0; i < shift; i++)
+    for (int i = 0; i < shift; i++)
     {
         if ((s0 & 1) == 1)
             s0 ^= this->mod;
