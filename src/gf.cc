@@ -63,7 +63,7 @@ uint64_t GF2_n::ext_euclid(const uint64_t a) const
     uint64_t r0 = a;
     uint64_t r1 = this->mod;
 
-    /* invariants NOT:
+    /* invariants (t0/t1 not computed):
      * x^{shift}*r0 = a*s0 + b*t0
      * x^{shift}*r1 = a*s1 + b*t1
      */
@@ -73,28 +73,29 @@ uint64_t GF2_n::ext_euclid(const uint64_t a) const
 
     while (r0 != r1)
     {
-        int count = 0;
+        const uint64_t ss = s0 ^ s1;
+        uint64_t rr = r0 ^ r1;
+        const int count = __builtin_ctzl(rr);
+        shift += count;
+        rr >>= count;
+
         if (r0 > r1)
         {
-            r0 ^= r1;
-            count = __builtin_ctzl(r0);
-            r0 >>= count;
-
-            s0 ^= s1;
+            r0 = rr;
+            s0 = ss;
             s1 <<= count;
         }
         else
         {
-            r1 ^= r0;
-            count = __builtin_ctzl(r1);
-            r1 >>= count;
-
-            s1 ^= s0;
+            r1 = rr;
+            s1 = ss;
             s0 <<= count;
         }
-        shift += count;
     }
 
+    /* at this point: x^{shift} = s0*a + t0*mod. (t0 not computed)
+     *  we have s0*a + t0*mod = (s0 + mod)*a + (t0 + a)*mod.
+     *  use it to divide s0 by x^{shift} */
     for (int i = 0; i < shift; i++)
     {
         if ((s0 & 1) == 1)
