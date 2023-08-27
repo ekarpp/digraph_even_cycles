@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <omp.h>
+#include <cstring>
 
 #include "gf.hh"
 #include "global.hh"
@@ -53,18 +54,21 @@ bool parse_file(const string &fname, vector<vector<int>> &graph)
 
 int main(const int argc, char **argv)
 {
-    if (argc == 1)
+    if (argc == 1 || (argc == 2 && strcmp(argv[1], "--help") == 0))
     {
-        cout << "provide path to graph file with -f (mandatory) ";
-        cout << "line i (starting at zero) in graph file ";
-        cout << "tells to which nodes there is an edge to" << endl;
-        cout << "-b to use the brute force solver instead (SLOW)" << endl;
-        cout << "-q for no progress output from solver" << endl;
-        cout << "-t to output time spent computing" << endl;
-        cout << "-u if the input graph is undirected, directs it randomly" << endl;
-        cout << "-n finite field size. 16 and 32 optimized. has to be <= 32 and >= 3" << endl;
-        cout << "-p for number of threads (defaults to 1)" << endl;
-        cout << "-s for seed" << endl;
+        cout << "Usage: digraph -f <file> [-b] [-q] [-t] [-u] [-n <field exponent>] [-s <seed>] [-p <threads>]" << endl;
+        cout << endl;
+        cout << "Options:" << endl;
+        cout << " -f\t path to a graph file (custom syntax explained in readme.md)" << endl;
+        cout << " -b\t use brute force solver (exponential complexity)" << endl;
+        cout << " -q\t do not output progress of computation" << endl;
+        cout << " -t\t output computation time" << endl;
+        cout << " -u\t direct the input graph (random process)" << endl;
+        cout << " -n\t exponent for the underlying finite field with 3 <= n <= 32. optimized for n=16 or n=32." << endl;
+        cout << " -p\t number of threads (defaults to 1)" << endl;
+        cout << " -s\t seed fed to the random number generator" << endl;
+        cout << " --help\t display usage information" << endl;
+        cout << endl;
         return 0;
     }
 

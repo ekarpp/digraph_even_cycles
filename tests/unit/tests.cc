@@ -1,6 +1,7 @@
 /* Copyright 2022 Eetu Karppinen. Subject to the MIT license. */
 #include <iostream>
 #include <getopt.h>
+#include <cstring>
 
 #include "../../src/global.hh"
 #include "../../src/util.hh"
@@ -24,19 +25,24 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    if (argc == 1)
+    if (argc == 1 || (argc == 2 && strcmp(argv[1], "--help") == 0))
     {
-        cout << "-e for extension tests" << endl;
-        cout << "-g for GF tests" << endl;
-        cout << "-f for FMatrix tests" << endl;
-        cout << "-x for EMatrix tests" << endl;
-        cout << "-u for util tests" << endl;
-        cout << "-s for solver tests" << endl;
-        cout << "-d $int dimension of matrix" << endl;
-        cout << "-n $int degree of modulo polynomial. 16 and 32 optimized" << endl;
-        cout << "-t $int how many times random tests are done" << endl;
-        cout << "-c run geng test. \"geng -q $n | directg -q | listg -aq \" has to be piped to this." << endl;
-        cout << "-r $int for seed to pseudo random generator" << endl;
+        cout << "Usage: digraph-tests [-e] [-g] [-f] [-x] [-u] [-s] [-c] [-d <dimension>] [-n <degree>] [-t <repeats>] [-r <seed>]" << endl;
+        cout << endl;
+        cout << "Options:" << endl;
+        cout << " -e\t execute extension ring tests" << endl;
+        cout << " -g\t execute finite field tests" << endl;
+        cout << " -f\t execute matrix tests with finite field elements" << endl;
+        cout << " -x\t execute matrix tests with extension ring elements" << endl;
+        cout << " -u\t execute utility functionality tests" << endl;
+        cout << " -s\t execute solver tests" << endl;
+        cout << " -c\t run geng tests. example pipe command: \"geng -q $n | directg -q | listg -aq | ./digraph-tests -c -n 16\"" << endl;
+        cout << " -d\t dimension of square matrices for matrix tests" << endl;
+        cout << " -n\t exponent for the underlying finite field with 3 <= n <= 32. optimized for n=16 or n=32." << endl;
+        cout << " -t\t number of repeats for tests" << endl;
+        cout << " -r\t seed fed to the random number generator" << endl;
+        cout << " --help\t display usage information" << endl;
+        cout << endl;
         return 0;
     }
 

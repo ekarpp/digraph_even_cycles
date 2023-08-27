@@ -31,7 +31,7 @@ help:
 	@echo '    make digraph'
 	@echo ''
 	@echo '  unit testing:'
-	@echo '    make digraph-test'
+	@echo '    make digraph-tests'
 	@echo ''
 	@echo '  runs predefined tests:'
 	@echo '    make test'

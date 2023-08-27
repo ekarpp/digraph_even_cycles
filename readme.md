@@ -10,13 +10,29 @@ Clone repository with `nauty` submodule included
 ```
 git clone --recurse-submodules https://github.com/ekarpp/digraph_shortest_even_cycle && cd digraph_shortest_even_cycle
 ```
-Run `make` to build everything or alternatively `make help` for other options. Requires `g++` and x86-64 microarchitecture with support for `PCLMULQDQ`, `BMI2`, and `AVX2` instruction set extensions.
+Run `make digraph` to build the main binary (and optionally `make test` to build test binary and running predefined tests). Alternative build targets can be listed with `make help`. Requires `g++` and x86-64 microarchitecture with support for `PCLMULQDQ`, `BMI2`, and `AVX2` instruction set extensions.
 
-Only mandatory argument to the algorithm binary, namely `digraph`, is `-f <path to graph file>`. It requires a file where line $i$ in the file (starting from zero) lists zero or more numbers separated with a space. Each number corresponds to an endpoint of an arc starting from vertex $i$. Some example files and graph generators can be found in `graphs` folder.
+```
+Usage: digraph -f <file> [-b] [-q] [-t] [-u] [-n <field exponent>] [-s <seed>] [-p <threads>]
 
-In addition to the implementation of the algorithm, this repository provides:
+Options:
+ -f      path to a graph file (custom syntax explained in readme.md)
+ -b      use brute force solver (exponential complexity)
+ -q      no progress output
+ -t      output computation time
+ -u      direct the input graph (random process)
+ -n      exponent for the underlying finite field with 3 <= n <= 32. Optimized for n=16 or n=32.
+ -p      number of threads (defaults to 1)
+ -s      seed fed to the random number generator
+ --help  display usage information
+```
+
+### Graph file syntax
+The main solver binary reads graphs from a file with custom syntax. In the file line $i$ (starting from zero) lists zero or more numbers separated with a space. Each number corresponds to an endpoint of an arc starting from vertex $i$. Some example files and graph generators can be found in `graphs` folder.
+
+# Additional contents
 - Unit testing software, `digraph-tests` binary
-- Nauty as a submodule to generate all digraphs with $n$ vertices (up to isomorphism)
+- Nauty as a submodule to generate all digraphs with $n$ vertices (up to isomorphism) for testing purposes
 - Various graph generator scripts
 - Graphs and SLURM scripts used to perform experiments
 - Benchmarking software for our implementations finite fields and the characteristic 4 extension
